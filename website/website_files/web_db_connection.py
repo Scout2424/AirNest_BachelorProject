@@ -25,7 +25,7 @@ CORS(app, supports_credentials=True, origins=[
 
 
 MAIL_SENDER       = "guestguy216@gmail.com"   # mail address
-MAIL_APP_PASSWORD = "nmsw mpwp crza fjzd"         # Gmail App Password (16 chars), original password only on the base code file
+MAIL_APP_PASSWORD = "x"         # Gmail App Password (16 chars), original password only on the base code file
 SITE_BASE_URL     = "https://airnest.duckdns.org"
 #  Admin Credentials (hardcoded, not in DB)
 ADMIN_EMAIL    = "adminuser@admin.com"
@@ -35,7 +35,7 @@ def is_admin_session():
     return session.get('is_admin', False)
 
 def require_admin(f):
-    """Decorator — returns 403 if the caller is not the admin."""
+    """Decorator returns 403 if the caller is not the admin."""
     from functools import wraps
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -179,7 +179,7 @@ def signup():
     return jsonify({'success': True})
 
 
-#  API — Email Verification
+#  API Email Verification
 #  User clicks the link in their email → redirects to site with result.
 @app.route('/api/verify-email/<token>', methods=['GET'])
 def verify_email(token):
@@ -214,7 +214,7 @@ def verify_email(token):
         put_conn(conn)
 
 
-#  API — Log In
+#  API  Log In
 #  Blocks login if email is not yet verified.
 @app.route('/api/login', methods=['POST'])
 def login():
@@ -271,14 +271,14 @@ def login():
         put_conn(conn)
 
 
-#  API — Log Out
+#  API  Log Out
 @app.route('/api/logout', methods=['POST'])
 def logout():
     session.clear()
     return jsonify({'success': True})
 
 
-#  API — Session Check
+#  API  Session Check
 @app.route('/api/session', methods=['GET'])
 def check_session():
     if session.get('is_admin'):
@@ -288,7 +288,7 @@ def check_session():
     return jsonify({'logged_in': False, 'is_admin': False})
 
 
-#  API — Forgot Password
+#  API  Forgot Password
 #  Accepts an email, generates a reset token, sends reset link.
 #  Always returns success to avoid revealing whether an email exists.
 @app.route('/api/forgot-password', methods=['POST'])
@@ -343,7 +343,7 @@ def forgot_password():
         put_conn(conn)
 
 
-#  API — Reset Password
+#  API  Reset Password
 #  Validates the token, updates the password.
 @app.route('/api/reset-password', methods=['POST'])
 def reset_password():
@@ -383,7 +383,7 @@ def reset_password():
         put_conn(conn)
 
 
-#  API — Sensor Data Ingest (from Raspberry Pi)
+#  API  Sensor Data Ingest (from Raspberry Pi)
 @app.route('/api/sensor', methods=['POST'])
 def receive_sensor():
     data = request.get_json()
@@ -445,7 +445,7 @@ def receive_sensor():
         put_conn(conn)
 
 
-#  API — Sensor Filter Dropdown Values (chained)
+#  API  Sensor Filter Dropdown Values (chained)
 #  ?year=2026             returns months available in that year
 #  ?year=2026&month=May   returns days available in that year+month
 #  No params              returns all years (months/days empty until chosen)
@@ -510,7 +510,7 @@ def get_sensor_filters():
         put_conn(conn)
 
 
-#  API — Sensor Chart Data
+#  API  Sensor Chart Data
 @app.route('/api/sensor-data', methods=['GET'])
 def get_sensor_data():
     year          = request.args.get('year')
@@ -558,7 +558,7 @@ def get_sensor_data():
         put_conn(conn)
 
 
-#  API — Sensor Record Count
+#  API  Sensor Record Count
 @app.route('/api/sensor-count', methods=['GET'])
 def sensor_count():
     conn = get_conn()
@@ -575,7 +575,7 @@ def sensor_count():
         put_conn(conn)
 
 
-#  API — CSV Download (login required)
+#  API  CSV Download (login required)
 @app.route('/api/download-csv', methods=['GET'])
 def download_csv():
     if 'user_id' not in session:
@@ -615,7 +615,7 @@ def download_csv():
         put_conn(conn)
 
 
-#  API — Debug
+#  API  Debug
 @app.route('/api/debug', methods=['GET'])
 def debug():
     conn = get_conn()
@@ -646,7 +646,7 @@ def debug():
         put_conn(conn)
 
 
-#  ADMIN — Get registered users
+#  ADMIN  Get registered users
 #  Optional filters: ?search=name_or_email&from=YYYY-MM-DD&to=YYYY-MM-DD
 @app.route('/api/admin/users', methods=['GET'])
 @require_admin
@@ -701,7 +701,7 @@ def admin_users():
         put_conn(conn)
 
 
-#  ADMIN — Get / Set maintenance mode
+#  ADMIN  Get / Set maintenance mode
 @app.route('/api/admin/maintenance', methods=['GET'])
 def get_maintenance():
     conn = get_conn()
@@ -744,7 +744,7 @@ def set_maintenance():
         put_conn(conn)
 
 
-#  ADMIN — Get contact form messages
+#  ADMIN  Get contact form messages
 #  ?order=desc (newest first, default) or ?order=asc (oldest first)
 @app.route('/api/admin/messages', methods=['GET'])
 @require_admin
@@ -781,7 +781,7 @@ def admin_messages():
         put_conn(conn)
 
 
-#  API — Receive Predictions from Raspberry Pi
+#  API  Receive Predictions from Raspberry Pi
 PREDICTION_SECRET = "airquality2026"   # must match predict.py on the Pi
 
 @app.route('/api/predictions', methods=['POST'])

@@ -51,7 +51,6 @@
     <div class="admin-wrapper content-wrapper" style="max-width:960px;">
       <h2 class="page-title">Admin Panel</h2>
 
-      <!-- ── MAINTENANCE MODE TOGGLE ── -->
       <div class="admin-toggle-card">
         <div>
           <div class="admin-toggle-label">Maintenance Mode</div>
@@ -65,7 +64,7 @@
         </label>
       </div>
 
-      <!-- ── USERS TABLE ── -->
+      <!--  USERS TABLE  -->
       <h3 style="font-family:'Playfair Display',Georgia,serif;font-size:1.3rem;
                  color:var(--ink);margin-bottom:1rem;">Registered Users</h3>
 
@@ -103,7 +102,7 @@
       </div>
       <p id="users-count" style="font-size:0.82rem;color:var(--muted);margin-top:0.75rem;"></p>
 
-      <!-- ── CONTACT MESSAGES ── -->
+      <!--  CONTACT MESSAGES  -->
       <div style="margin-top:3rem;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
           <h3 style="font-family:'Playfair Display',Georgia,serif;font-size:1.3rem;color:var(--ink);">
@@ -148,7 +147,7 @@
     <span id="toast-success-msg">Done!</span>
   </div>
   <div id="toast-error" class="toast toast-error">
-    <span class="toast-icon">✕</span>
+    <span class="toast-icon">X</span>
     <span id="toast-error-msg">Something went wrong.</span>
   </div>
 
@@ -169,7 +168,7 @@
       window.location.href = 'index.html';
     }
 
-    // ── MAINTENANCE ──
+    //  MAINTENANCE 
     async function loadMaintenance() {
       try {
         const res  = await fetch(`${API_BASE}/api/admin/maintenance`, { credentials: 'include' });
@@ -202,7 +201,7 @@
       }
     }
 
-    // ── USERS ──
+    //  USERS 
     async function loadUsers() {
       const search = document.getElementById('filter-search').value.trim();
       const from   = document.getElementById('filter-from').value;
@@ -260,7 +259,7 @@
       loadUsers();
     }
 
-    // ── MESSAGES ──
+    //  MESSAGES 
     async function loadMessages() {
       const order  = document.getElementById('msg-order').value;
       const tbody  = document.getElementById('messages-tbody');
@@ -298,7 +297,7 @@
       }
     }
 
-    // ── INIT — redirect if not admin ──
+    //  INIT  redirect if not admin 
     window.addEventListener('DOMContentLoaded', async () => {
       try {
         const res  = await fetch(`${API_BASE}/api/session`, { credentials: 'include' });
@@ -316,7 +315,7 @@
       await loadMessages();
     });
   
-    /* ── MOBILE NAV ── */
+    /*  MOBILE NAV  */
     function toggleNav() {
       const nav     = document.getElementById('main-nav');
       const overlay = document.getElementById('nav-overlay');

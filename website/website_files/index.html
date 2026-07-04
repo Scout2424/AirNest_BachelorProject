@@ -53,7 +53,7 @@
     <div class="content-wrapper">
       <h2 class="page-title">Welcome</h2>
 
-      <!-- ── PROJECT DESCRIPTION ── -->
+      <!--  PROJECT DESCRIPTION  -->
       <div class="home-description">
         <p>
           The present project is an air quality monitoring station that has been assembled
@@ -102,7 +102,7 @@
     </div>
 
     <div class="content-wrapper">
-      <!-- ── BOTTOM TEXT SECTION ── -->
+      <!--  BOTTOM TEXT SECTION  -->
       <div class="home-bottom">
         <h3 class="home-bottom-title">About the station</h3>
         <p>
@@ -207,7 +207,7 @@
       ? `${window.location.protocol}//${window.location.hostname}:${window.location.port}`
       : `${window.location.protocol}//${window.location.hostname}`;
 
-    /* ── TOAST ── */
+    /*  TOAST  */
     function showToast(type, message) {
       if (message) document.getElementById('toast-' + type + '-msg').textContent = message;
       const toast = document.getElementById('toast-' + type);
@@ -215,7 +215,7 @@
       setTimeout(() => toast.classList.remove('toast-visible'), 4000);
     }
 
-    /* ── AUTH ── */
+    /*  AUTH  */
     function setLoggedIn(loggedIn, isAdmin) {
       document.getElementById('btn-signup').style.display = loggedIn ? 'none'        : 'inline-flex';
       document.getElementById('btn-login').style.display  = loggedIn ? 'none'        : 'inline-flex';
@@ -282,7 +282,7 @@
       setLoggedIn(false);
     }
 
-    /* ── FORGOT PASSWORD ── */
+    /*  FORGOT PASSWORD  */
     function openForgotModal() {
       closeLoginModal();
       document.getElementById('forgot-modal').style.display = 'flex';
