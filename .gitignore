@@ -1,0 +1,71 @@
+# VS Code / IDE
+.vscode/
+.idea/
+*.iml
+
+# Node
+node_modules/
+dist/
+build/
+
+# Python
+__pycache__/
+*.pyc
+venv/
+env/
+*.egg-info/
+
+# Flutter / Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+/build/
+**/build/
+
+# Android / Gradle
+.gradle/
+**/android/.gradle/
+**/android/captures/
+**/android/gradlew
+**/android/gradlew.bat
+**/android/local.properties
+*.jks
+*.keystore
+
+# iOS / macOS
+**/ios/Flutter/Flutter.framework
+**/ios/Flutter/Flutter.podspec
+**/ios/Pods/
+**/macos/Flutter/ephemeral/
+*.xcworkspace/
+
+# Compiled binaries / build outputs
+*.apk
+*.aab
+*.ipa
+*.exe
+*.dll
+*.so
+*.o
+*.class
+.cxx/
+.kotlin/
+
+# Documents / media
+*.docx
+*.pdf
+#*.mp4
+
+# Windows
+Thumbs.db
+desktop.ini
+
+# Temporary files
+*.tmp
+*.log
+
+.env
+website/website_files/.git/

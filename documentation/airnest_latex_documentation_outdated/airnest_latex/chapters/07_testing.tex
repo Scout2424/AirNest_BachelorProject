@@ -1,0 +1,381 @@
+%  07_testing.tex  –  Chapter 6: Testing
+
+
+\chapter{Testing}
+\label{ch:testing}
+
+\section{Unit Testing}
+\label{sec:unit-testing}
+
+\subsection{Hardware Components}
+\label{subsec:hw-testing}
+
+\subsubsection*{DHT11 Temperature and Humidity Sensor}
+
+Over the recorded experiment sessions, the DHT11 was reliable in its operations as far as the
+physical connections were concerned. There were a few sessions that showed values of
+0$^\circ$C and 0\,\% humidity. This was due to a loose cable connection on the breadboard
+that was corrected after the hardware experiment session. It can also be caused by the sensor
+picking up the heat from the other ones, but it was moved further away to avoid this scenario.
+On the June 12th session for example, temperature stayed within a 1.8$^\circ$C range
+(27.3--25.5$^\circ$C) and humidity within 6\,\% (39--45\,\%) across a window of almost
+24 hours, indicating stable and credible readings. Only once on this day, the sensor read 0
+values, but it was solved without external interaction, through the retry mechanism.
+
+The DHT11 retry mechanism was triggered only once during the valid sessions (not the test
+sessions), which confirms that when the physical connection is secure, the sensor returns valid
+data on the first attempt.
+
+\subsubsection*{MQ Gas Sensors and ADC}
+
+The MQ sensors were evaluated across multiple valid measurement sessions conducted in the
+Aradului neighbourhood of Timișoara. The readings were collected under similar conditions: an
+indoor environment with a nearby open window (most of the time), at temperatures of
+24$^\circ$C to 30$^\circ$C.
+
+\textit{Pre-calibration and post-calibration comparison}
+
+On June 6 the sensors were fully calibrated. In order to test if it was correct, readings
+collected on May 25th (before) have been compared with those taken on June 13 (after). Both
+sessions were taken indoors, in the same space. Only difference is that on May 25th the window
+was open, while on June 13th wasn't. Also the first recordings were taken at 26.6--26.9$^\circ$C
+and 48\,\% humidity, while the latter at 25.1--26.4$^\circ$C and 40--48\,\% humidity.
+
+\vspace{12pt}
+\begin{table}[H]
+  \centering
+  \caption{Table 5: PPM values (before recalibration and after)}
+  \label{tab:calibration-compare}
+  \renewcommand{\arraystretch}{1.3}
+  \begin{tabular}{lrrr}
+    \toprule
+    \textbf{Sensor} & \textbf{May 25\textsuperscript{th} PPM mean} & \textbf{June 13\textsuperscript{th} PPM mean} & \textbf{Change} \\
+    \midrule
+    MQ135 &    267.81 & 1{,}081.04 & $+304\,\%$ \\
+    MQ3   &      0.58 &      0.28  & $-52\,\%$  \\
+    MQ6   & 1{,}299.27 & 1{,}184.39 & $-9\,\%$  \\
+    MQ7   &    150.46 &     98.95  & $-34\,\%$  \\
+    MQ8   & 1{,}152.35 & 1{,}354.16 & $+17\,\%$ \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+\vspace{12pt}
+
+Even if the values from the MQ7 decreased quite a bit, they are still above the threshold.
+Values for MQ3 (alcohol/benzene) decreased as expected due to the lower sensitivity of $R_O$
+in recalibration. Values for MQ135 increased quite a bit on June 13th. This is because during
+that session, the window was closed the whole time, while people were in the room, so the
+CO\textsubscript{2} accumulated. The readings are accurate, since the new $R_O$ value results
+in a change in the formula ($R_S/R_O$), which leads to lower PPM.
+
+The June 13th MQ7 readings of around 99\,ppm are higher than the warning level of 35\,ppm. It
+is explained in Section 6.3 why this warning limit is exceeded, even after calibration. The
+accuracy of MQ sensors is somewhere around $\pm$15--30\,\%. Also the MQ7 sensor has
+difficulties in detecting values which are so low.
+
+\textit{June 13 reading stability}
+
+The June 13th session goes for approximately 6.5 hours. Below is shown the stability of
+readings across the session by comparing the first and last readings (03:12 to 09:44):
+
+\vspace{12pt}
+\begin{table}[H]
+  \centering
+  \caption{Table 6: June 13\textsuperscript{th} stability comparison}
+  \label{tab:stability}
+  \renewcommand{\arraystretch}{1.3}
+  \begin{tabular}{lrrr}
+    \toprule
+    \textbf{Sensor} & \textbf{03:12 reading (ppm)} & \textbf{09:44 reading (ppm)} & \textbf{Variation} \\
+    \midrule
+    MQ3 & 1{,}022.61 & 1{,}133.97 & $+10.9\,\%$ \\
+    MQ6 & 1{,}094.34 & 1{,}238.04 & $+13.1\,\%$ \\
+    MQ7 &     93.80  &    101.98  & $+8.7\,\%$  \\
+    MQ8 & 1{,}330.29 & 1{,}375.58 & $+3.4\,\%$  \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+\vspace{12pt}
+
+The increase in readings indicates slow buildup of gases over time in an indoor space with no
+ventilation. The sensor which displays the lowest change is MQ8, while the one with the
+highest change is MQ6. Nothing unusual since the closed space will, in time, gather a higher
+concentration of gases.
+
+\textit{Temperature and humidity correction factor}
+
+It's been confirmed that the correction factor used for $R_S$ before PPM calculations was
+providing results. During the May 25th session, when the temperature was 26.6$^\circ$C and
+humidity about 48\,\%, the value of the correction factor is around 0.977. For the June 13th
+session, when the temperature is around 26$^\circ$C and humidity is 47\,\%, correction is
+around 0.978.
+
+\textit{ADC saturation}
+
+The MQ6 sensor reached the maximum ADC value of 4095, corresponding to 3.3\,V, in the earlier
+unstructured test sessions captured in the May 2026 data with no DHT11 readings. While those
+sessions are excluded from quantitative analysis, the saturation event confirms that the
+current load resistor configuration limits the measurable range of MQ6 at high concentrations.
+In the valid test sessions, MQ6 reached a maximum raw value of 1{,}515 (May 24), 1{,}467
+(May 25), and 1{,}443 (May 28), all well below saturation, indicating that the sensor behaves
+within its measurable range under the observed indoor conditions.
+
+\textit{Extreme event observation}
+
+One important incident took place on June 5 when the following levels were obtained: MQ135
+attained a level of 31{,}019\,ppm, MQ6 got a value of 36{,}848\,ppm, MQ7 acquired a level of
+3{,}093\,ppm and MQ8 acquired 2{,}939\,ppm. This particular experiment is not included in
+quantitative analyses because of the accompanying fault in DHT11. However, the values obtained
+demonstrate the effectiveness of the system for recognizing an increase in gas concentration
+and activating the alarm system properly. It should also be noted that this session predates
+the calibration procedure mentioned further in this section, and the initial $R_O$ values were
+used, which turned out to be too high due to inadequate preheating of sensors.
+
+\textit{Sensor Recalibration and Validation}
+
+$R_O$ values employed in the calculation of the initial PPM (Table 2, initial values) have
+been derived from a baseline measurement done following approximately 14 hours of uninterrupted
+sensor work. Preheating for 24 to 48 hours is recommended in the MQ series sensor manual prior
+to calibration for the first time for achieving the equilibrium between the heating element and
+sensing element inside the sensor. Consequently, since the initial baseline value has been
+acquired prior to the attainment of this balance, resulting $R_O$ values were inflated causing
+the PPM values to be unreasonably higher, such as readings for MQ7 sensors at around 400 to
+600\,ppm, and sometimes even for MQ135 sensors at more than 10{,}000\,ppm.
+
+\textit{Recalibration Process}
+
+Following a second day of continuous use, making a total of four days in line with the
+recommended datasheet value for preheating time, a new baseline reading was performed using the
+``Aradului ap.'' station in Timișoara over the course of about 10 hours using 19 readings. The
+final two readings were dropped in this case due to malfunctioning of the DHT11 sensor, which
+exhibited its failure mode in the form of 0.0$^\circ$C and 0\,\% humidity readings while
+caching data from previous readings.
+
+The $R_O$ values for all sensors were recalculated based on the average voltage readings using
+the same corrections for the voltage divider and resistance as before, represented in Eq.\ (3)
+and Eq.\ (2).
+
+\vspace{12pt}
+\begin{table}[H]
+  \centering
+  \caption{Table 7 -- $R_O$ recalibration comparison}
+  \label{tab:ro-recalibration}
+  \renewcommand{\arraystretch}{1.3}
+  \begin{tabular}{lrrr}
+    \toprule
+    \textbf{Sensors} & \textbf{Old $R_O$ ($\Omega$)} & \textbf{New $R_O$ ($\Omega$)} & \textbf{Change} \\
+    \midrule
+    MQ135 & 47{,}059 & 30{,}688 & $-35\,\%$ \\
+    MQ3   &  9{,}870 &  7{,}524 & $-24\,\%$ \\
+    MQ6   &  8{,}880 &  8{,}490 & $-4\,\%$  \\
+    MQ7   & 28{,}712 & 11{,}539 & $-60\,\%$ \\
+    MQ8   & 54{,}886 & 38{,}502 & $-30\,\%$ \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+\vspace{12pt}
+
+In addition to the previously taken measurements with the window open, another session was
+taken with the window closed using the recalculated $R_O$ values. The readings for the MQ7
+sensor dropped from the 400--600\,ppm range to only 51--76\,ppm, an important drop, although
+still higher than 35\,ppm. In contrast, the voltage of the MQ135 sensor (which is eCO2)
+increased by around 28\,\% when the window was closed, which is expected from the increase in
+CO\textsubscript{2} levels from breathing in a closed room. Voltage dropped by around 24\,\%
+in the MQ3 sensor (which measures alcohol and benzene), while the other readings remained
+relatively stable.
+
+\textit{MQ7 Persistent Threshold Exceedance}
+
+After recalibration, MQ7 still consistently reads 51--76\,ppm, above the 35\,ppm threshold,
+even with no obvious CO source present.
+
+A few factors likely explain this. MQ-series sensors have a manufacturer-stated accuracy
+tolerance of around $\pm$15--30\,\% even when properly calibrated, so a true reading near the
+threshold can easily appear 50\,\% higher. This is because the 35\,ppm limit is also determined
+by the OSHA 8 hours workplace exposure limit, which is a conservative industrial standard and
+not a danger level for a residential building. Normal levels of indoor CO, when there is no
+source of combustion, are significantly lower, but MQ7 is less accurate because it is intended
+to detect higher concentrations. Finally, the recalibration of MQ7 was made according to only
+one session of 19 measurements, so there could be still some offset in MQ7 zero-level reading,
+which will result in all values being shifted upwards.
+
+Taking into account all above mentioned facts, it was decided to leave the warning signal
+unchanged and not to change the warning threshold even more. The warning means that the system
+correctly detects that MQ7 readings are increased in comparison with the clean air baseline
+value, which is its correct task.
+
+\subsubsection*{Sound Sensor}
+
+The KY-037 analog output was reliable for all recordings. Values of \texttt{Sound\_raw} ranged
+from 111 to 117 during May recordings, equivalent to voltages between 0.089 and 0.094\,volts.
+DOUT interrupt sound event counter showed 0 during all the recording segments taken. This was
+expected, considering that the place where the station was running at the time was quiet.
+
+\subsubsection*{Warning System and LED Indicators}
+
+The warning mechanism test was done indirectly for all the three gas events that were valid.
+For every event, the high PPM values triggered a warning notification that identified the
+sensors that had readings which went above the threshold set. The warning message was captured
+in the CSV file and in the data that went to the server. The red LED was observed to light for
+5 seconds at the end of each cycle where a warning was generated, then turned off. The blue LED
+turned on whenever a reading was sent, to show that the data was sent.
+
+\subsection{Software Components}
+\label{subsec:sw-testing}
+
+\subsubsection*{PPM Computation}
+
+Testing of calculation of PPM through the pipeline takes place with help of recalibrated
+baselines presented in section 6.1.1. $R_S$ for each sensor that has been received according
+to the formula for calculating voltage~(3) and resistance formula~(2) in terms of the
+recalibration baseline with regard to the average value of voltage corresponds to $R_O$ value
+for each sensor. This guarantees right usage of the voltage divider correction formula and
+$R_S$ value formula in the script. Also, it is guaranteed that the recalibrated $R_O$ value is
+consistent with the formula used for calculation when the sensor operates.
+
+\subsubsection*{Local CSV Logging}
+
+Function of local CSV logging was tested with the restriction of the connection with the remote
+server where CSV files usually should be uploaded to. Regardless of that, it operates without
+any problems, completes measuring cycle and adds new data line into the local CSV file without
+any failures. HTTP POST operation failure is processed by exception handler, while script
+itself doesn't stop working.
+
+\subsubsection*{Station Toggle}
+
+The button-based toggle was tested by pressing the button during an active data collection
+session. The \texttt{run\_event} flag was correctly cleared and data collection paused.
+Pressing the button again resumed collection.
+
+\subsubsection*{External API Integration}
+
+Two external APIs are called during each data collection cycle: \texttt{ipinfo.io} for device
+location and OpenWeatherMap for weather symbols~\cite{openweathermap}. They were verified to
+function correctly across all recorded sessions. \texttt{ipinfo.io} API identified the
+station's location as Timișoara, Romania, which was the right one. OpenWeatherMap API returned
+``Sunny'' for all May sessions (since all of those sessions were sunny) and ``Rainy'' for the
+June sessions (only the ones which showed signs of rain or straight rain).
+
+\section{Integration Testing}
+\label{sec:integration-testing}
+
+This way it was verified the data pipeline. From sensor readings until what is displayed on
+the website and mobile app.
+
+\vspace{12pt}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.65\textwidth]{integration_flow}
+  \caption{Figure 41: Integration test data flow}
+  \label{fig:integration-flow}
+\end{figure}
+\vspace{12pt}
+
+\subsubsection*{End-to-End Data Flow}
+
+Once the station was operational and connected to the network, it was confirmed that the
+readings of the sensors are entered into the PostgreSQL database and can be seen on the website
+in a matter of seconds. Each time a cycle of 30 minutes is completed, the Raspberry Pi makes a
+POST request to \texttt{/api/sensor}. Then the Flask server enters the row right away, once it
+gets the request.
+
+\subsubsection*{Website Authentication}
+
+The authentication flow process has been tested by using the following methods. Registration
+through a valid Gmail account followed by activation through the link received in the inbox.
+Logging in before account activation resulted in the appropriate error message. Login with
+wrong credentials resulted in the error message. For the forgot password flow, the reset link
+was successfully sent. Upon resetting the password, login could be done with the new password.
+Dummy user accounts have been registered in the database and validated, proving the entire
+flow works.
+
+\subsubsection*{CSV Download Access Control}
+
+The CSV download endpoint was tested by using an authenticated and an unauthenticated user.
+For the unauthenticated part, GET request to \texttt{/api/download-csv} returned a 401
+response and was blocked by the frontend, opening the login modal after. By logging in
+correctly, the same request succeeded and the browser downloaded the complete sensor dataset
+as a CSV file.
+
+\subsubsection*{Data Page Filtering}
+
+Multiple options of using the filter from the Data page have been tested. In all such cases
+tested, the charts have been rendered with the correct filtered data set. The expected data
+was filtered and shown. The Reset All button works as expected and removes all filters and
+loads the complete, initial, dataset. If there is no data for the selected filters, then ``No
+data found for the selected filters'' is shown.
+
+\vspace{12pt}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.75\textwidth]{data_filter}
+  \caption{Figure 42: Data page filter}
+  \label{fig:data-filter}
+\end{figure}
+\vspace{12pt}
+
+\subsubsection*{Maintenance Mode}
+
+Maintenance mode toggle was tested by enabling it from the Admin page. The website was
+accessed afterwards by a non-admin session and only displayed the maintenance specific page.
+Turning off maintenance mode, from the admin page, by the admin account user, restores the
+normal access to the website for everyone. The administrator's own session is not affected.
+
+\vspace{12pt}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.75\textwidth]{maintenance_page}
+  \caption{Figure 43: Maintenance page}
+  \label{fig:maintenance}
+\end{figure}
+\vspace{12pt}
+
+\subsubsection*{Android App}
+
+It has been tested by deploying the APK build on a physical Android device to test its
+connectivity with the Flask backend server. Home screen did show the images properly from the
+asset files. Data screen fetched the sensor values and showed the line charts and the filter
+dropdowns. Predictions screen showed the cards of the predictions with all the proper date
+formatting, temperature range, humidity, weather indicator and danger part. The Contact screen
+(form page on website) sent a test message to the \texttt{/api/contact} endpoint, which has
+been found appearing in the Contact Messages table of the admin panel. The APK file download
+was also tested from the Download page of the web application, the same way it is done for the
+CSV file.
+
+\section{Known Limitations}
+\label{subsec:limitations}
+
+There have been a number of issues identified during the testing that are documented for future
+improvement.
+
+If the room temperature is too high (30 or higher degrees Celsius), then the time necessary
+for the sensor's initial heat up might need to be longer than the first 30 minutes before the
+first reading after start.
+
+The MQ6 gas sensor saturates the ADC in cases of high gas concentrations, compromising its
+accuracy. In case of hardware modification, changing the value of the load resistor to reduce
+the voltage range output will increase the concentration ceiling limit of measurement.
+
+The formula used to correct the temperature and humidity effect on the PPM reading is a general
+approximation, obtained from the Hanwei application note~\cite{hanwei}.
+
+Currently, the setting for the neighbourhood can only be set at initialization through the
+command terminal and once the station has been initialized, it cannot be changed without
+stopping the whole process. The better approach will be having the setting stored in a
+configuration file which is then read at initialization.
+
+If the DHT11 sensor is placed too close to the other sensors, it will pick up their heat
+instead. This will lead to wrong readings and the correction formula not being computed
+correctly.
+
+The MQ7 sensor is not very precise when it comes to very low readings, like the ones specific
+to the actual carbon monoxide present in the indoor space. They give constant readings which
+are 35\,ppm to 100\,ppm higher than they should, after heating. It is not something unusual
+for this type of sensor.
+
+The station doesn't have a portable electrical source available yet. It must be connected to
+an electrical socket.
+
+When it comes to the prediction system, even in case the system works perfectly fine,
+predictions should be made with caution. It is also important to consider the length of the
+dataset.

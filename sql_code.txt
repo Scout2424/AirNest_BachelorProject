@@ -1,0 +1,512 @@
+--
+-- Name: aq_predictions; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.aq_predictions (
+    id integer NOT NULL,
+    date character varying(10) NOT NULL,
+    temp_forecast_c double precision,
+    temp_low_c double precision,
+    temp_high_c double precision,
+    humidity_forecast double precision,
+    danger_predicted integer,
+    danger_label character varying(10),
+    danger_probability double precision,
+    is_rainy_forecast integer,
+    generated_at character varying(20),
+    received_at timestamp without time zone DEFAULT now()
+);
+
+
+ALTER TABLE public.aq_predictions OWNER TO postgres;
+
+--
+-- Name: aq_predictions_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.aq_predictions_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.aq_predictions_id_seq OWNER TO postgres;
+
+--
+-- Name: aq_predictions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.aq_predictions_id_seq OWNED BY public.aq_predictions.id;
+
+
+--
+-- Name: contact_messages; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.contact_messages (
+    id integer NOT NULL,
+    name character varying(100),
+    email character varying(150),
+    subject character varying(200),
+    message text,
+    submitted_at timestamp without time zone DEFAULT now(),
+    created_at timestamp without time zone DEFAULT now()
+);
+
+
+ALTER TABLE public.contact_messages OWNER TO postgres;
+
+--
+-- Name: contact_messages_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.contact_messages_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.contact_messages_id_seq OWNER TO postgres;
+
+--
+-- Name: contact_messages_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.contact_messages_id_seq OWNED BY public.contact_messages.id;
+
+
+--
+-- Name: form; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.form (
+    id integer NOT NULL,
+    name character varying(50) NOT NULL,
+    email character varying(80) NOT NULL,
+    subject character varying(80) NOT NULL,
+    message text NOT NULL,
+    entry_date date DEFAULT CURRENT_DATE,
+    entry_time timestamp without time zone DEFAULT CURRENT_TIMESTAMP
+);
+
+
+ALTER TABLE public.form OWNER TO postgres;
+
+--
+-- Name: form_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+ALTER TABLE public.form ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME public.form_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: log_in; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.log_in (
+    id bigint NOT NULL,
+    email character varying(80) NOT NULL,
+    password character varying(200) NOT NULL,
+    entry_date date DEFAULT CURRENT_DATE,
+    entry_time time without time zone DEFAULT CURRENT_TIME
+);
+
+
+ALTER TABLE public.log_in OWNER TO postgres;
+
+--
+-- Name: log_in_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.log_in_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.log_in_id_seq OWNER TO postgres;
+
+--
+-- Name: log_in_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.log_in_id_seq OWNED BY public.log_in.id;
+
+
+--
+-- Name: password_reset_tokens; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.password_reset_tokens (
+    id integer NOT NULL,
+    user_id integer NOT NULL,
+    token text NOT NULL,
+    expires_at timestamp without time zone NOT NULL,
+    created_at timestamp without time zone DEFAULT now()
+);
+
+
+ALTER TABLE public.password_reset_tokens OWNER TO postgres;
+
+--
+-- Name: password_reset_tokens_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.password_reset_tokens_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.password_reset_tokens_id_seq OWNER TO postgres;
+
+--
+-- Name: password_reset_tokens_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.password_reset_tokens_id_seq OWNED BY public.password_reset_tokens.id;
+
+
+--
+-- Name: sensor_data; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.sensor_data (
+    id integer NOT NULL,
+    year character varying(10),
+    month character varying(20),
+    day character varying(30),
+    "time" character varying(10),
+    neighbourhood character varying(100),
+    city character varying(100),
+    country character varying(100),
+    temperature_c double precision,
+    temperature_f double precision,
+    humidity double precision,
+    weather character varying(50),
+    mq135_raw integer,
+    mq3_raw integer,
+    mq6_raw integer,
+    mq7_raw integer,
+    mq8_raw integer,
+    mq135_v double precision,
+    mq3_v double precision,
+    mq6_v double precision,
+    mq7_v double precision,
+    mq8_v double precision,
+    mq135_ppm double precision,
+    mq3_ppm double precision,
+    mq6_ppm double precision,
+    mq7_ppm double precision,
+    mq8_ppm double precision,
+    sound_raw integer,
+    sound_v double precision,
+    sound_events integer,
+    warning text,
+    recorded_at timestamp without time zone DEFAULT now()
+);
+
+
+ALTER TABLE public.sensor_data OWNER TO postgres;
+
+--
+-- Name: sensor_data_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.sensor_data_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.sensor_data_id_seq OWNER TO postgres;
+
+--
+-- Name: sensor_data_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.sensor_data_id_seq OWNED BY public.sensor_data.id;
+
+
+--
+-- Name: sign_up; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.sign_up (
+    id bigint NOT NULL,
+    first_name character varying(50) NOT NULL,
+    last_name character varying(50) NOT NULL,
+    email character varying(80) NOT NULL,
+    password character varying(200) NOT NULL,
+    entry_date date DEFAULT CURRENT_DATE,
+    entry_time time without time zone DEFAULT CURRENT_TIME
+);
+
+
+ALTER TABLE public.sign_up OWNER TO postgres;
+
+--
+-- Name: sign_up_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.sign_up_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.sign_up_id_seq OWNER TO postgres;
+
+--
+-- Name: sign_up_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.sign_up_id_seq OWNED BY public.sign_up.id;
+
+
+--
+-- Name: site_settings; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.site_settings (
+    key text NOT NULL,
+    value text NOT NULL
+);
+
+
+ALTER TABLE public.site_settings OWNER TO postgres;
+
+--
+-- Name: users; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.users (
+    id integer NOT NULL,
+    first_name character varying(100),
+    last_name character varying(100),
+    email character varying(150),
+    password text,
+    created_at timestamp without time zone DEFAULT now(),
+    verified boolean DEFAULT false,
+    verify_token text,
+    last_login timestamp without time zone
+);
+
+
+ALTER TABLE public.users OWNER TO postgres;
+
+--
+-- Name: users_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.users_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.users_id_seq OWNER TO postgres;
+
+--
+-- Name: users_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.users_id_seq OWNED BY public.users.id;
+
+
+--
+-- Name: aq_predictions id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.aq_predictions ALTER COLUMN id SET DEFAULT nextval('public.aq_predictions_id_seq'::regclass);
+
+
+--
+-- Name: contact_messages id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.contact_messages ALTER COLUMN id SET DEFAULT nextval('public.contact_messages_id_seq'::regclass);
+
+
+--
+-- Name: log_in id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.log_in ALTER COLUMN id SET DEFAULT nextval('public.log_in_id_seq'::regclass);
+
+
+--
+-- Name: password_reset_tokens id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.password_reset_tokens ALTER COLUMN id SET DEFAULT nextval('public.password_reset_tokens_id_seq'::regclass);
+
+
+--
+-- Name: sensor_data id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.sensor_data ALTER COLUMN id SET DEFAULT nextval('public.sensor_data_id_seq'::regclass);
+
+
+--
+-- Name: sign_up id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.sign_up ALTER COLUMN id SET DEFAULT nextval('public.sign_up_id_seq'::regclass);
+
+
+--
+-- Name: users id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.users ALTER COLUMN id SET DEFAULT nextval('public.users_id_seq'::regclass);
+
+
+--
+-- Name: aq_predictions aq_predictions_date_unique; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.aq_predictions
+    ADD CONSTRAINT aq_predictions_date_unique UNIQUE (date);
+
+
+--
+-- Name: aq_predictions aq_predictions_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.aq_predictions
+    ADD CONSTRAINT aq_predictions_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: contact_messages contact_messages_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.contact_messages
+    ADD CONSTRAINT contact_messages_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: form form_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.form
+    ADD CONSTRAINT form_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: log_in log_in_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.log_in
+    ADD CONSTRAINT log_in_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: password_reset_tokens password_reset_tokens_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.password_reset_tokens
+    ADD CONSTRAINT password_reset_tokens_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: password_reset_tokens password_reset_tokens_token_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.password_reset_tokens
+    ADD CONSTRAINT password_reset_tokens_token_key UNIQUE (token);
+
+
+--
+-- Name: sensor_data sensor_data_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.sensor_data
+    ADD CONSTRAINT sensor_data_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: sign_up sign_up_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.sign_up
+    ADD CONSTRAINT sign_up_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: site_settings site_settings_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.site_settings
+    ADD CONSTRAINT site_settings_pkey PRIMARY KEY (key);
+
+
+--
+-- Name: users users_email_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT users_email_key UNIQUE (email);
+
+
+--
+-- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT users_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: idx_prt_token; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX idx_prt_token ON public.password_reset_tokens USING btree (token);
+
+
+--
+-- Name: idx_prt_user_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX idx_prt_user_id ON public.password_reset_tokens USING btree (user_id);
+
+
+--
+-- Name: password_reset_tokens password_reset_tokens_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.password_reset_tokens
+    ADD CONSTRAINT password_reset_tokens_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+
+
+--
+-- PostgreSQL database dump complete
+--

@@ -1,0 +1,982 @@
+%  06_implementation.tex  –  Chapter 5: Implementation
+
+\chapter{Implementation}
+\label{ch:implementation}
+
+\section{Raspberry Pi Subsystem}
+\label{sec:rpi-subsystem}
+
+\subsection{Startup and Initialization}
+\label{subsec:startup}
+
+When the station script is launched, a series of initialization steps take place before data
+collection begins. The SPI interface is opened and configured for communication with the MCP3208
+ADC at a maximum clock speed of 1{,}350{,}000\,Hz. DHT11 initialization takes place on GPIO
+pin 23. GPIO pins of the two LEDs and the button are initialized using the \texttt{gpiozero}
+library. A hardware interrupt is attached to GPIO pin 24 of the KY-037 digital output, which
+operates in both rising and falling edge modes with 50\,ms debounce period to ensure that the
+same sound is not counted twice because of bouncing.
+
+Then the script makes two external API calls. First to \texttt{ipinfo.io} so it can determine
+the device's current city and country based on public IP address. Second one to prompt the user
+to enter a neighbourhood label through the terminal. The variable neighbourhood label holds a
+string value, which is incorporated into each data record until the end of the session. Lastly,
+the principal thread for collecting data is initiated as a daemon thread, after which the script
+blocks to wait for input from the button.
+
+\vspace{12pt}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.6\textwidth]{startup_flowchart}
+  \caption{Figure 13: Flowchart of the station startup sequence}
+  \label{fig:startup-flowchart}
+\end{figure}
+\vspace{12pt}
+
+\subsection{Data Reading}
+\label{subsec:data-reading}
+
+Every 30 minutes, it is checked whether data sending is enabled via the thread-safe event flag.
+If it is, the loop proceeds to read all sensors in sequence.
+
+First we read the DHT11 sensor since the temperature and humidity data obtained from it will be
+used as inputs for calculating the PPM values from the MQ sensors using the correction equation.
+As the communication of DHT11 follows the single-wire protocol, which is time-sensitive and
+often does not produce any output, the read is repeated up to five times with an interval of two
+seconds. In case of failure of all the attempts, then the process is simply skipped. It has been
+found that the DHT11 fails to provide any reading when continuously operated for around 14 hours.
+
+The five MQ sensors and the KY-037 analog output are then read through the MCP3208 ADC. The
+MCP3208 communicates over SPI and returns a 12-bit integer value between 0 and 4095 for each
+channel. This raw value is converted to a voltage using the reference voltage of 3.3\,V:
+
+\vspace{12pt}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.75\textwidth]{raw_voltage_code}
+  \caption{Figure 14 -- Converted raw voltage code}
+  \label{fig:raw-voltage-code}
+\end{figure}
+\vspace{12pt}
+
+However, because the MQ sensors operate on 5\,V and their analog output passes through a
+1\,k$\Omega$--2\,k$\Omega$ voltage divider before reaching the ADC, the voltage read by the
+ADC is not the actual sensor output voltage. The actual sensor output must be recovered by
+applying the inverse of the divider ratio:
+
+\vspace{12pt}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.75\textwidth]{actual_voltage_code}
+  \caption{Figure 15 -- Actual output value code}
+  \label{fig:actual-voltage-code}
+\end{figure}
+\vspace{12pt}
+
+This corrected voltage is then used for all subsequent PPM calculations.
+
+\vspace{12pt}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.65\textwidth]{voltage_divider}
+  \caption{Figure 16: Diagram of the voltage divider circuit for a single MQ sensor, showing the 1\,k$\Omega$ and 2\,k$\Omega$ resistors, the 5\,V sensor output and the scaled voltage reaching the MCP3208 input.}
+  \label{fig:voltage-divider}
+\end{figure}
+\vspace{12pt}
+
+\subsubsection{PPM Computation}
+\label{subsubsec:ppm}
+
+MQ sensors work by making their internal resistance vary ($R_S$) in response to changes in gas
+concentration. The relation between resistance and concentration is described by a power-law
+curve published in the sensor datasheets:
+
+\begin{equation}
+  \mathrm{PPM} = a \cdot \left(\frac{R_S}{R_O}\right)^b \tag{1}
+  \label{eq:ppm}
+\end{equation}
+
+$a$ and $b$ are sensor-specific constants. They are derived from the datasheet sensitivity
+curves. $R_O$ is the sensor's resistance measured in clean air, that serves as the calibration
+baseline. $R_S$ is computed from the measured output voltage:
+
+\begin{equation}
+  R_S = \frac{(V_C - V_{out}) \cdot R_L}{V_{out}} \tag{2}
+  \label{eq:rs}
+\end{equation}
+
+$V_C = 5\,\text{V}$ is the sensor supply voltage and $R_L = 2000\,\Omega$ is the load
+resistance.
+
+The $R_O$ values used for this project were derived from an initial set of data that was
+collected under mostly clean indoor air conditions. The first baseline was recorded during the
+early phase of the testing; however, it was discovered later on that the $R_O$ values were
+inaccurate because of inadequate sensor pre-heating and were later re-calibrated. The details
+specific to this show in section 6.1.1 (Table 7). In both cases, the same steps were taken to
+find $R_S$ from the average measured voltage using Eqs.\ (2) and (3), where $R_O = R_S$.
+
+\begin{equation}
+  V_{out} = V_{ADC} \cdot \frac{R_1 + R_2}{R_2} \tag{3}
+  \label{eq:vdivider}
+\end{equation}
+
+The recalibrated $R_O$ values and constants for each sensor can be seen in the following table:
+
+\vspace{12pt}
+\begin{table}[H]
+  \centering
+  \caption{Table 2: Constant values for gases}
+  \label{tab:sensor-constants}
+  \renewcommand{\arraystretch}{1.3}
+  \begin{tabular}{lllrr}
+    \toprule
+    \textbf{Sensor} & \textbf{Target gas} & \textbf{$a$} & \textbf{$b$} & \textbf{$R_O$ ($\Omega$)} \\
+    \midrule
+    MQ135 & eCO\textsubscript{2}  & 110.47 & $-2.862$ & 30{,}688 \\
+    MQ3   & Alcohol/Benzene        & 0.3934  & $-1.504$ &  7{,}524 \\
+    MQ6   & LPG/Butane             & 1000.5  & $-2.180$ &  8{,}490 \\
+    MQ7   & Carbon Monoxide        & 99.042  & $-1.518$ & 11{,}539 \\
+    MQ8   & Hydrogen               & 976.97  & $-0.688$ & 38{,}502 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+\vspace{12pt}
+
+MQ sensor resistance is also affected by temperature and humidity, so a correction factor which
+results from Hanwei application notes~\cite{hanwei} is applied to $R_S$:
+
+\begin{equation}
+  \text{CF}(T,RH) = \frac{1}{(-0.01223 + 0.00609 \cdot RH) \cdot T + (1.70836 - 0.14289 \cdot RH)} \tag{4}
+  \label{eq:correction}
+\end{equation}
+
+$T$ is temperature in Celsius and $RH$ is relative humidity percentage. 20$^\circ$C and 65\,\%
+RH are the references. The corrected resistance is then used in the ratio:
+
+\vspace{12pt}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.75\textwidth]{ppm_code}
+  \caption{Figure 17 -- PPM computation code}
+  \label{fig:ppm-code}
+\end{figure}
+\vspace{12pt}
+
+Results outside the range of 0 to 100{,}000 PPM are discarded as invalid and stored as null
+values.
+
+\vspace{12pt}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.65\textwidth]{ppm_flowchart}
+  \caption{Figure 18: Flowchart of the PPM computation pipeline}
+  \label{fig:ppm-flowchart}
+\end{figure}
+\vspace{12pt}
+
+\subsubsection{Sound Detection}
+
+The KY-037 sound sensor provides two outputs. The analog output (AOUT) is read through the
+MCP3208 on channel 5 and converted to a voltage, representing the background ambient sound
+level at the time of the reading. The digital output (DOUT) is connected directly to GPIO
+pin 24 and monitored via a hardware interrupt registered with \texttt{RPi.GPIO}. The interrupt
+works by triggering during both the rising and falling edges of the signal, incrementing the
+global counter for every trigger. The trigger counter value is saved and reset to zero every
+30 minutes. Interrupts are used instead of software polling, as they can detect very brief
+signal transitions that occur within microseconds, which software polling can not catch due to
+its slow processing speed.
+
+\subsubsection{Warning Conditions and LED Indicators}
+
+At the end of each measurement cycle, the computed PPM values are compared against a set of
+approximate safety thresholds sourced from publicly available environmental guidelines:
+
+\vspace{12pt}
+\begin{table}[H]
+  \centering
+  \caption{Table 3 -- PPM threshold for each sensor}
+  \label{tab:ppm-thresholds}
+  \renewcommand{\arraystretch}{1.3}
+  \begin{tabular}{ll}
+    \toprule
+    \textbf{Sensor} & \textbf{Threshold} \\
+    \midrule
+    MQ135 & 1{,}200 PPM \\
+    MQ3   & 50 PPM      \\
+    MQ6   & 1{,}600 PPM \\
+    MQ7   & 35 PPM      \\
+    MQ8   & 1{,}000 PPM \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+\vspace{12pt}
+
+In the case where at least one sensor exceeds its threshold, a warning message is generated
+naming the sensors that triggered it. Additionally, weather-based warnings are generated if the
+current weather condition is stormy or unknown, if the temperature exceeds 35$^\circ$C under
+sunny conditions, or is below 0$^\circ$C. When a warning is active, the red LED is turned on
+for 5 seconds. The blue LED is on whenever data is successfully sent.
+
+\subsubsection{Data Packaging, Local Logging, and Transmission}
+
+After each cycle, all data collected and calculated are put together in a dictionary object
+with Python consisting of 30 keys: timestamp divided into year, month, and day keys, location
+keys, temperature in Celsius and Fahrenheit, humidity, weather description, raw ADC data,
+calculated voltages, PPM data, sound data, and a warning key if there is any. The dictionary
+object gets saved locally on a CSV file by using \texttt{csv.DictWriter} function in Python.
+This way a local copy of all recorded data is created, so in case something goes wrong while
+sending data to the server, there will always be the local file. The dictionary also gets
+transformed into JSON format and is sent through an HTTP POST request to the Flask
+application's endpoint \texttt{/api/sensor}.
+
+\vspace{12pt}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.65\textwidth]{data_cycle_flowchart}
+  \caption{Figure 19: Flowchart of a single complete data collection cycle}
+  \label{fig:data-cycle}
+\end{figure}
+\vspace{12pt}
+
+\subsection{Prediction Script}
+\label{subsec:prediction-script}
+
+The prediction part has two components: a training executed in Google Colab and a daily
+inference script (\texttt{predict.py}) deployed on the Raspberry Pi.
+
+\subsubsection{Training Data and Feature Engineering}
+
+The machine learning models were trained in Google Colab by using three data sources. These
+were combined into a single training dataset:
+
+Weather data for Timișoara covering January 2024 to the present was fetched from Open-Meteo
+archive API~\cite{openmeteo}. This provided temperature and humidity.
+
+Official air quality values were downloaded from the EEA Air Quality Download
+Service~\cite{eea}. They cover four government monitoring stations in Timișoara (RO0193A,
+RO0194A, RO0196A, RO0197A). The data goes over 17 months with hourly data and includes CO,
+NO\textsubscript{2}, SO\textsubscript{2} and O\textsubscript{3}. Only valid observations were
+converted to daily data by averaging of all the stations.
+
+The live values measured by the sensors from the Raspberry Pi sensor station (MQ135, MQ3, MQ6,
+MQ7 and MQ8 PPM values, temperature and humidity) gave us the most accurate data which we used
+to predict the level of risk.
+
+The input daily data was extended with the use of lagged variables (yesterday's data and last
+week's data), average of the last seven days for temperature, humidity, and gas concentrations
+and time variables such as day of the year, month, season, and week of the year.
+
+\subsubsection{Model 1 — Prophet (Temperature and Humidity Forecast)}
+
+Meta's Prophet library~\cite{prophet} was used to train two separate time series models. One
+for temperature and one for humidity, each producing a next 7-day forecast. Prophet was chosen
+for its ability to handle missing data gaps, multiple seasonality patterns (weekly and yearly)
+and suitability for datasets with limited history (perfect for this type of project). One model
+was trained per target variable and exported as a \texttt{.pkl} file using \texttt{joblib}.
+
+\subsubsection{Model 2 — Random Forest Classifier (Danger Prediction)}
+
+Random Forest classifier~\cite{sklearn} was trained to predict if a future day is likely to
+present dangerous air quality conditions. The danger label was defined as any MQ sensor reading
+going above its established safety threshold. Where live sensor data was available, the label
+was derived directly from the sensor readings. For days without sensor coverage, the label was
+derived from the EEA pollutant readings compared against WHO, EU, and OSHA guideline
+thresholds. The classifier was trained with balanced class weights to account for the natural
+imbalance between safe and dangerous days in the dataset and evaluated using 5-fold
+cross-validation for estimating generalization performance.
+
+\subsubsection{Deployment and Retraining}
+
+Both trained models are exported as lightweight \texttt{.pkl} files and placed in a
+\texttt{models/} subdirectory on the Raspberry Pi alongside a \texttt{model\_meta.json} file
+containing the list of feature column names expected at inference time.
+
+The \texttt{predict.py} file is called on a daily basis at 7:00 AM via a cron job. On each
+run the script imports both models, gets a current 7-day weather forecast from the Open-Meteo
+forecast API~\cite{openmeteo}, creates features vectors for each of the following 7 days
+(based on the local sensor data from a CSV file), generates danger predictions and forecasts,
+writes the predictions into a local \texttt{predictions.csv} file. It then POSTs predictions
+to the Flask server on AWS and stores them in the \texttt{aq\_predictions} table in PostgreSQL.
+
+The system can be retrained monthly (or even more often) by re-executing one notebook in Google
+Colab with updated sensor data and historical data from EEA and Open-Meteo, in order to
+improve model performance.
+
+The steps of each daily inference run are logged to a \texttt{predict.log} file in the station
+directory. This way a record is created which also includes any errors that appear.
+
+\vspace{12pt}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.65\textwidth]{predict_flowchart}
+  \caption{Figure 20 -- \texttt{predict.py} daily inference pipeline}
+  \label{fig:predict-flowchart}
+\end{figure}
+\vspace{12pt}
+
+\subsection{ML Training Notebook}
+\label{subsec:ml-notebook}
+
+The ML models are trained in a specialized Google Colab notebook~\cite{googlecolab}
+(\texttt{AirQuality\_ML\_Training.ipynb}). This notebook contains 11 stages. It should be run
+from top to bottom, without interruption, in one go. Workflow consists of: data collection
+(three different sources), data preparation, model training (and evaluation), making predictions
+for the next 7 days and exporting the models. A special cell for model retraining is provided
+for the monthly update of models based on new data from the sensors CSV file.
+
+\subsubsection{Historical Weather Data}
+
+Timișoara related historical weather data is fetched automatically from the Open-Meteo archive
+API~\cite{openmeteo} using the coordinates (45.7489$^\circ$N, 21.2087$^\circ$E), covering
+January 2021 to the current date. The API returns hourly temperature, relative humidity, and
+WMO weather codes, which are resampled to daily averages. The most frequent weather code of
+each day is retained as the daily code, and a binary \texttt{is\_rainy} flag is derived by
+mapping all WMO codes of 51 or above to rainy days.
+
+\subsubsection{EEA Station Data}
+
+The CSV files for the EEA data set are uploaded via the Colab file uploader tool. The pollutant
+type is automatically determined using the numeric pollutant code present in each of the
+filenames as follows: 00001 for SO\textsubscript{2}, 00007 for O\textsubscript{3}, 00010 for
+CO, and 00020 for NO\textsubscript{2}. All readings whose validity flag is 1 and have positive
+and non-sentinel values are used.
+
+\subsubsection{Sensor CSV}
+
+The sensor CSV file exported from the Raspberry Pi station is uploaded through the Colab file
+picker. The date is parsed from the station's format combining the Year, Month, and the numeric
+portion of the Day field. The remaining rows are aggregated to daily mean and maximum PPM values
+for each of the five MQ sensors, alongside daily mean temperature and humidity. The danger label
+for sensor-covered days is derived by checking whether any MQ sensor's daily mean PPM exceeds
+its threshold:
+
+\vspace{12pt}
+\begin{table}[H]
+  \centering
+  \caption{Table 4 -- Sensor threshold value and its basis}
+  \label{tab:ml-thresholds}
+  \renewcommand{\arraystretch}{1.3}
+  \begin{tabular}{lll}
+    \toprule
+    \textbf{Sensor} & \textbf{Threshold} & \textbf{Basis} \\
+    \midrule
+    MQ135 & 200 PPM   & EU NO\textsubscript{2} hourly limit (proxy) \\
+    MQ3   & 1{,}000 PPM & OSHA TWA \\
+    MQ6   & 1{,}000 PPM & $\approx$20\,\% lower explosive limit \\
+    MQ7   & 35 PPM    & WHO 1-hour guideline \\
+    MQ8   & 1{,}000 PPM & $\approx$25\,\% lower explosive limit \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+\vspace{12pt}
+
+\subsubsection{Merging and Feature Engineering}
+
+The three daily datasets are merged, with the weather data as the base. Short gaps of up to
+three consecutive days in the EEA data are forward-filled to account for brief station outages.
+The merged dataset is then enriched with the following features:
+
+Time-based features: day of year, month, week of year, and season (winter, spring, summer,
+autumn mapped from month number).
+
+Lag features: yesterday's and last week's values for temperature, humidity, and each EEA
+pollutant, giving the model awareness of short and medium-term trends.
+
+Rolling average: rolling mean over 7 days for temperature, humidity, and each EEA pollutant to
+smooth the data and capture weekly patterns.
+
+\subsubsection{Exploratory Plots}
+
+The script creates six time series plots in PNG format. Each plot shows the daily pattern for
+temperature, humidity, NO\textsubscript{2}, CO, SO\textsubscript{2} and O\textsubscript{3}
+during the entire date range. This is used for sanity checking the data set after merging.
+
+\subsubsection{Prophet Training}
+
+Two Prophet models are trained. One for temperature and one for humidity. It is used the
+\texttt{train\_prophet()} function. The settings for each model include yearly and weekly data
+in additive form with a \texttt{changepoint\_prior\_scale} value of 0.05 to make the trend
+more flexible. The last 14 days of each series are held out to use as a test dataset. MAE
+(Mean Absolute Error) and RMSE (Root Mean Squared Error) are calculated for the dataset and
+printed. Each model provides an extended forecast for 7 days ahead of the training dataset.
+Prophet forecast plots are saved as PNG files showing the fitted values, the 7-day projection,
+and the uncertainty interval.
+
+\subsubsection{Random Forest Training}
+
+The danger label is built with sensor-derived values taking priority over EEA-derived values,
+where both are available. The final feature set for the classifier includes all weather
+features, time features, lag and rolling features, EEA pollutant features, and MQ sensor PPM
+means, where available. Rows missing the danger label are dropped. Remaining missing values in
+the feature columns are filled with the column median before training.
+
+The Random Forest classifier is configured with 200 estimators, maximum depth of 6, minimum 3
+samples per leaf, balanced class weights and a fixed random seed of 42. It is evaluated using
+5-fold stratified cross-validation with F1 score as the metric. The cross-validation F1 mean
+and standard deviation are printed. The classifier is then fitted on the full dataset for
+deployment. Feature importances are computed and the top 15 are plotted and saved as a PNG.
+
+% Flask Server 
+
+\section{Flask Server}
+\label{sec:flask-server}
+
+\subsubsection*{Sensor Data Ingestion}
+
+The \texttt{/api/sensor} endpoint receives POST requests from the Raspberry Pi and inserts the
+data into the \texttt{sensor\_data} table in the PostgreSQL database. All numeric fields are
+passed through a \texttt{safe\_float()} helper that returns \texttt{None} instead of raising an
+exception if a value cannot be converted (for cases where Raspberry Pi sends the string
+``N/A'' when sensors return invalid readings). Database connections are managed through a
+\texttt{SimpleConnectionPool} provided by \texttt{psycopg2}. It maintains between 1 and 10
+open connections and reuses them across requests to avoid the overhead of opening a new
+connection for each incoming reading.
+
+\subsubsection*{User Authentication}
+
+The website supports user registration, email verification, login, logout and password reset.
+Passwords are not stored in plain text. All of them are hashed using bcrypt before being saved
+to the database. The function used for verification is \texttt{checkpw} (from Bcrypt).
+
+\vspace{12pt}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.5\textwidth]{encrypted_password}
+  \caption{Figure 21 -- How the encrypted password looks in DB}
+  \label{fig:encrypted-pwd}
+\end{figure}
+\vspace{12pt}
+
+Upon a user registering, a secure, random token is generated by using Python's
+\texttt{secrets} module. It is then stored with the unverified account. A verification email
+is sent to the provided address via Gmail SMTP using STARTTLS encryption. The email contains a
+link to the \texttt{/api/verify-email/<token>} endpoint. When the link is clicked, the token
+is looked up in the database, the account marked as verified and the token cleared. Login is
+blocked for accounts that haven't been verified.
+
+Password reset follows the same token-based pattern: reset token is generated, stored in a
+separate table with a one-hour expiry timestamp, then sent to the user by email. When the reset
+form is submitted, the token is validated against the database and verified for expiry, before
+the new password is accepted and hashed.
+
+A hardcoded administrator account also exists. It is checked before the database lookup at
+login time. The admin session grants access to the admin panel. This panel displays registered
+user activity, the form data and allows toggling of a maintenance mode for the entire website.
+When maintenance mode is active, non-admin users see a maintenance notice instead.
+
+\vspace{12pt}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.65\textwidth]{registration_flowchart}
+  \caption{Figure 22 - Flowchart of the user registration and email verification flow}
+  \label{fig:registration}
+\end{figure}
+\vspace{12pt}
+
+\subsubsection*{Sensor Data Querying and Filtering}
+
+The \texttt{/api/sensor-data} endpoint accepts optional query parameters for year, month, day,
+neighbourhood, city and country. They are used to dynamically build a parameterized WHERE
+clause in the SQL query. Only parameters that are present in the request are included in the
+filter. Omitting all parameters returns the most recent unfiltered 500 records. The
+\texttt{/api/sensor-filters} endpoint returns the distinct values present in the database for
+each filterable field, which the frontend uses to populate the filter dropdowns.
+
+\subsubsection*{CSV Export}
+
+The \texttt{/api/download-csv} endpoint requires an active user session, returning a 401 error
+if the request comes from an unauthenticated user. When authenticated, it queries all rows from
+the \texttt{sensor\_data} table ordered by insertion time, writes them to an in-memory
+\texttt{StringIO} buffer. Python's \texttt{csv} module is used for it. After that it returns
+the buffer contents as a file download.
+
+\subsubsection*{Predictions API}
+
+Two endpoints handle the prediction data. The POST endpoint \texttt{/api/predictions} receives
+daily forecast from the Raspberry Pi. It needs a secret to be shared via the
+\texttt{X-Secret} header, where the server then validates the value against a constant before
+accepting any data. This way unauthorized writing to the predictions table is prevented. The
+endpoint receives a body in JSON format containing an array of prediction objects, with each
+object inserted in the \texttt{aq\_predictions} table in an upsert operation using
+\texttt{ON CONFLICT (date) DO UPDATE}. This means that if the station executes the prediction
+script on the same day multiple times, only the first insertion would be done.
+
+The GET endpoint \texttt{/api/predictions} is publicly available and returns 7 forecast objects
+with dates starting from the current date. This ensures that the website displays the next 7
+days' predictions, not the previous ones.
+
+\subsubsection*{Admin Messages Endpoint}
+
+\texttt{/api/admin/messages} API call has the \texttt{require\_admin} decorator and retrieves
+all rows in the \texttt{contact\_messages} table. It has an optional order query parameter that
+determines whether the results should be sorted in ascending or descending order based on the
+time of submission, and its default value is \texttt{desc}. The returned fields include the
+message id, sender name, email, subject, body, and creation date.
+
+%  Website Frontend 
+
+\section{Website Frontend}
+\label{sec:frontend}
+
+\subsection{Overall Structure}
+\label{subsec:frontend-structure}
+
+The website is composed of multiple pages, each served as a static HTML file by the Flask
+server. All pages share a navigation header. Each page has its own inline JavaScript
+responsible for client-side logic.
+
+\subsubsection*{Home Page}
+
+The home page introduces the project, lists the hardware components, and provides an overview
+of the system features. It is rendered from \texttt{index.html} and contains only static
+content and images.
+
+\vspace{12pt}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.85\textwidth]{homepage}
+  \caption{Figure 23: Home page}
+  \label{fig:homepage}
+\end{figure}
+\vspace{12pt}
+
+\subsubsection*{Data Page}
+
+The Data page's inline JavaScript handles filter population, data fetching and chart rendering
+entirely on the client side.
+
+On page load, two asynchronous requests are made in sequence. The first calls
+\texttt{/api/sensor-filters}, which returns the distinct values present in the database for
+year, month, day, neighbourhood, city and country. These values are used to populate six
+dropdown menus organized into two filter rows. There is one for time-filtering and another for
+location filtering. Entries with blank or ``blank'' values are ignored. The second API call
+retrieves the unfiltered dataset from \texttt{/api/sensor-data} containing maximum 500 entries
+sorted by the time of their insertion.
+
+When a user applies filter values and presses the Apply button, the \texttt{loadData()}
+function generates a query string based on selected dropdowns and retrieves the filtered
+dataset. When a user clicks Reset All button, all dropdowns will be cleared and the unfiltered
+dataset will be retrieved.
+
+Chart drawing is done using Chart.js 4.4.1~\cite{chartjs}, fetched from a CDN. Eight line
+charts are drawn, each chart representing one measured parameter. The construction of these
+charts is done by the function \texttt{buildChart()}. This makes sure that all the instances
+of Chart.js are destroyed prior to creation to avoid memory leakage caused by multiple
+instances.
+
+Each dataset in a chart is constructed using the function \texttt{makeDataset()}. It is
+included in the script of \texttt{data.html}:
+
+\vspace{12pt}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.85\textwidth]{makedataset_code}
+  \caption{Figure 24: makeDataset() code}
+  \label{fig:makedataset}
+\end{figure}
+\vspace{12pt}
+
+As there are more than 100 points, they are not shown by setting \texttt{pointRadius = 0}.
+This helps to make the chart readable for larger sets of data. The value of the tension of
+0.35 gives some curvature to the line. The null values in the data set, for the invalid
+sensors that were recorded in the database as None, are passed as \texttt{null} to the
+JavaScript arrays and handled by the library as gaps in the line.
+
+The sound chart is a special case, as here are drawn two datasets on two separate Y axes. The
+left Y axis shows the KY-037 analog voltage in volts and the right Y axis shows the number of
+events.
+
+Each chart has their visual style defined in the \texttt{CHART\_DEFAULTS} and \texttt{COLORS}
+constants at the top of the script.
+
+\vspace{12pt}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.85\textwidth]{data_charts}
+  \caption{Figure 25: Data page charts}
+  \label{fig:data-charts}
+\end{figure}
+\vspace{12pt}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.6\textwidth]{data_flow}
+  \caption{Figure 26: Data Page workflow}
+  \label{fig:data-flow}
+\end{figure}
+\vspace{12pt}
+
+\subsubsection*{Sign Up Page}
+
+It contains only the registration form. In the form must be entered first name, last name,
+email address, password and password confirmation. Validation is performed in real time as the
+user types, with error messages appearing beneath each field (if it's the case).
+
+Email addresses are restricted to \texttt{@gmail.com} and \texttt{@yahoo.com} domains,
+validated by splitting the input on the \texttt{@} character and checking the domain against an
+allowed list. Passwords must be at least 8 characters long and contain at least one special
+character, checked against a regular expression. The confirm password field is re-validated
+whenever the password field changes, to immediately reflect any mismatch. All four validators
+return a boolean and toggle CSS error classes on the input and its associated error span
+(browser-native form validation is not used).
+
+On form submission, \texttt{handleSignUp()} runs all four validators and only proceeds with
+the API call if all pass. A POST request is sent to \texttt{/api/signup} with the form data
+as JSON. On success, a toast notification instructs the user to check their email for the
+verification link. The form fields are cleared but the user is not redirected, allowing them
+to read the instruction. In the case of the server returning an error (example: because the
+email is already registered) the error message from the server response is displayed in the
+error toast.
+
+When the user clicks the verification link in their email, it redirects back to
+\texttt{sign\_up.html} with a \texttt{?verified=1} query parameter. The page detects this
+parameter on load and displays a success toast confirming that the email has been verified and
+that the user can now log in. The query parameter is then removed from the URL using
+\texttt{history.replaceState} to keep the address bar clean.
+
+The Sign Up page also embeds the login modal and forgot password modal, so users who already
+have an account can log in directly from this page without navigating away.
+
+\vspace{12pt}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.75\textwidth]{signup_page}
+  \caption{Figure 27 -- Sign Up page}
+  \label{fig:signup}
+\end{figure}
+\vspace{12pt}
+
+\subsubsection*{Login, Forgot Password, and Password Reset}
+
+The login modal is available on every page, containing email and password fields. On successful
+login, the header buttons update immediately to show Log Out and Admin Page, if it's the case.
+If the logged-in account is the administrator, then the page redirects to
+\texttt{admin.html} after a short delay. Login errors returned by the server such as unverified
+accounts or wrong credentials are displayed inline beneath the password field rather than as a
+generic toast.
+
+The forget password modal can be accessed from a link that is present inside the login modal.
+This takes an email id as input and POSTs to \texttt{/api/forgot-password}. The output will
+always show a success message, even if the email id wasn't present in the database.
+
+The password reset process is handled by a separate page, \texttt{reset\_password.html}. When
+the user comes to the page using the reset link sent through the email, it takes the token from
+the URL query string and passes it along with the reset request made to
+\texttt{/api/reset-password}.
+
+\vspace{12pt}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.45\textwidth]{login_form}
+  \caption{Figure 28a: Log In form}
+  \label{fig:login}
+\end{figure}
+\vspace{12pt}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.75\textwidth]{password_reset}
+  \caption{Figure 28b: Password reset page}
+  \label{fig:pwd-reset}
+\end{figure}
+\vspace{12pt}
+
+\subsubsection*{Form Page}
+
+Contains the form for contacting the website admin. It has fields for name, mail, subject and
+message. Data is sent as JSON to \texttt{/api/contact}, then inserted into the database. A
+success toast is displayed upon completion.
+
+\subsubsection*{Predictions Page}
+
+It fetches the live prediction data from \texttt{/api/predictions} endpoint on page load. The
+predictions are in the form of day cards (built by \texttt{buildCard()} js function). Each card
+has on it the day name, exact date, a sun or rain icon, predicted temperature and humidity. It
+also has a bar for the safe or risk status. This bar shows the percentage related to the gas
+concentration. The \texttt{formatDate()} function extracts date values in the format
+YYYY-MM-DD from the API response dates. It formats values to be readable.
+
+The page also contains informational text which explains when the predictions are generated and
+details about how to interpret what's on the cards. The predictions are made to a total of up
+to seven days.
+
+\vspace{12pt}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.85\textwidth]{predictions_page}
+  \caption{Figure 29 -- Prediction page predictions view}
+  \label{fig:predictions}
+\end{figure}
+\vspace{12pt}
+
+\subsubsection*{Download Page}
+
+Download page allows authenticated users to download the complete sensor dataset as a CSV file
+and APK for the mobile application. For example, by clicking the download button, the frontend
+sends a GET request to \texttt{/api/download-csv} (the case for CSV file) with the session
+cookie included. In the case of the user not being logged in, the server returns a 401 response
+and the frontend shows an error message prompting the user to log in first. When authenticated,
+the server queries all rows from the \texttt{sensor\_data} table and writes them to an
+in-memory buffer using Python's \texttt{csv} module. Afterwards it returns the buffer as a
+downloadable file with the \texttt{Content-Disposition: attachment; filename=sensor\_data.csv}
+header, so that the browser saves it directly as a file.
+
+\vspace{12pt}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.75\textwidth]{download_page}
+  \caption{Figure 30 -- Zoomed view of the download page}
+  \label{fig:download}
+\end{figure}
+\vspace{12pt}
+
+\subsubsection*{Admin Page}
+
+The Admin page is accessible only to the administrator account. It displays a table of all
+registered users, showing their name, email address, verification status, registration date and
+last login time. The list can be filtered by name, email, or registration date using a search
+bar and date inputs that query the \texttt{/api/admin/users} endpoint. Maintenance mode can
+also be toggled from here (works by calling \texttt{/api/admin/maintenance} with a POST
+request). When maintenance mode is enabled, all non-admin visitors see a maintenance notice
+instead of the website content.
+
+In addition to the user management table and maintenance toggle previously described, the Admin
+page also includes a Contact Messages panel from where all the information input by the users
+on the form page can be seen. The information that can be seen is sender's name, email address,
+subject, message text, and the timestamp at which the message was received. A sort order
+dropdown allows the administrator to switch between newest-first and oldest-first ordering.
+
+\vspace{12pt}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.85\textwidth]{admin_page}
+  \caption{Figure 31 -- Admin page view}
+  \label{fig:admin}
+\end{figure}
+\vspace{12pt}
+
+\section{PostgreSQL Database}
+\label{sec:database}
+
+\subsubsection*{Database Structure Overview}
+
+The PostgreSQL database, named \texttt{website\_data}, is being hosted on AWS RDS and contains
+eight tables. These can be grouped into three functional categories: sensor data storage, user
+account management and site administration. It uses auto-incrementing integer primary keys
+generated by sequences for most tables, with the exception of \texttt{site\_settings}, which
+uses a text key as its primary key since it functions as a simple key-value configuration store.
+
+\vspace{12pt}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.85\textwidth]{er_diagram}
+  \caption{Figure 32: Entity-relationship diagram of database}
+  \label{fig:er-diagram}
+\end{figure}
+\vspace{12pt}
+
+\subsubsection*{Sensor Data Table}
+
+It stores the reading data and warnings. A new record is inserted every 30 minutes while the
+station is active.
+
+\vspace{12pt}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.85\textwidth]{sensor_data_sql}
+  \caption{Figure 33 -- sensor\_data table sql code}
+  \label{fig:sensor-data-sql}
+\end{figure}
+\vspace{12pt}
+
+The table stores three levels of detail for each MQ sensor: the raw 12-bit ADC integer value,
+the computed voltage after voltage divider correction and the final PPM concentration. The raw
+and intermediate values are kept as well, in case modifications to the formulas are made at a
+later date. The timestamp fields sent by the station (year, month, day, time) are stored as
+strings, matching the format in which the Raspberry Pi generates and sends them. The warning
+column stores the full warning text in the case that any threshold is exceeded during that
+cycle, or an empty string otherwise.
+
+\subsubsection*{User Account Tables}
+
+User account management is handled by two active tables: \texttt{users} and
+\texttt{password\_reset\_tokens}.
+
+\vspace{12pt}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.85\textwidth]{users_sql}
+  \caption{Figure 34 -- user table sql code}
+  \label{fig:users-sql}
+\end{figure}
+\vspace{12pt}
+
+The email column has a unique constraint, preventing duplicate registrations. Verified column
+defaults to false at registration and is set to true only after the user clicks the
+verification link sent by email. The \texttt{verify\_token} column stores the random token
+sent in the verification email and is set to NULL after successful verification, invalidating
+the link. The password column never stores the plain text password, only the bcrypt hash.
+\texttt{Last\_login} timestamp is updated on every successful login.
+
+The \texttt{password\_reset\_tokens} table manages the password reset flow.
+
+\vspace{12pt}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.85\textwidth]{prt_sql}
+  \caption{Figure 35 -- password\_reset\_tokens table sql code}
+  \label{fig:prt-sql}
+\end{figure}
+\vspace{12pt}
+
+The \texttt{user\_id} column is a foreign key referencing \texttt{users(id)} with
+\texttt{ON DELETE CASCADE}, meaning all reset tokens for a user are automatically deleted if
+the user account is deleted. The token column has both a unique constraint and a B-tree index
+(\texttt{idx\_prt\_token}). \texttt{User\_id} has its own index (\texttt{idx\_prt\_user\_id}).
+These indexes ensure that token lookups and user-specific token deletions are fast operations.
+When a new reset request is made, any existing token for that user is deleted before the new
+one is inserted, ensuring only one valid reset token exists per user at any time.
+
+\subsubsection*{Supporting Tables}
+
+The \texttt{contact\_messages} stores the data, such as name, mail, subject and message and
+exact sent time from the Contact page.
+
+\vspace{12pt}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.75\textwidth]{contact_messages_sql}
+  \caption{Figure 36: contact\_messages table code}
+  \label{fig:contact-sql}
+\end{figure}
+\vspace{12pt}
+
+\texttt{site\_settings} table acts as a simple key-value store for Flask server.
+
+\vspace{12pt}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.75\textwidth]{site_settings_sql}
+  \caption{Figure 37: site\_settings table code}
+  \label{fig:settings-sql}
+\end{figure}
+\vspace{12pt}
+
+The \texttt{aq\_predictions} table stores the 7-day forecasts generated by the prediction
+script. The date column has a unique constraint, which enables the upsert behavior in the POST
+endpoint. If the prediction script runs more than once on the same day, the existing row for
+that date is updated. The \texttt{generated\_at} column stores the timestamp as a string in the
+format produced by the Raspberry Pi (YYYY-MM-DD HH:MM:SS), while \texttt{received\_at} is set
+automatically by the database server at the time of insertion or update.
+
+\vspace{12pt}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.85\textwidth]{aq_predictions_sql}
+  \caption{Figure 38 -- prediction table sql code}
+  \label{fig:pred-sql}
+\end{figure}
+\vspace{12pt}
+
+Currently it stores a single entry with key \texttt{maintenance\_mode} and value true or false.
+The key column is the primary key and new entries are inserted using PostgreSQL's
+\texttt{ON CONFLICT (key) DO UPDATE} syntax, which acts as an upsert. So the maintenance mode
+can be toggled without knowing whether the row already exists.
+
+There are also three older tables, which were used for testing, at earlier stages of the
+project: \texttt{form}, \texttt{log\_in} and \texttt{sign\_up}. These have been superseded by
+\texttt{contact\_messages} and \texttt{users} respectively and are no longer written to by the
+active application code.
+
+\section{AWS Deployment}
+\label{sec:aws}
+
+\subsubsection*{EC2 Instance}
+
+The Flask server runs on an Amazon EC2 instance located in the EU (Stockholm) region
+(\texttt{eu-north-1}). The instance runs a Linux operating system and hosts the Flask
+application on port 8080. EC2 instance serves a dual role: it handles all incoming HTTP
+requests from both the Raspberry Pi (sensor data POST requests) and website visitors (page and
+API requests). The Flask application is configured to bind to \texttt{0.0.0.0}, making it
+accessible on all network interfaces, and the EC2 security group is configured to allow inbound
+traffic on port 8080 from any IP address, so the website is publicly accessible.
+
+\subsubsection*{RDS Instance and Connection}
+
+The PostgreSQL database runs on an AWS RDS instance in the same \texttt{eu-north-1} region as
+the EC2 instance. By hosting both in the same region network latency is kept to a minimum
+between the Flask server and database. The RDS instance can be accessed at a fixed endpoint
+hostname, so it lets the Flask application to connect to it by hostname, not IP address.
+
+Flask server is connected to the database by using the \texttt{psycopg2} library through a
+\texttt{SimpleConnectionPool}. It is configured to maintain between 1 and 10 open connections:
+
+\vspace{12pt}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.85\textwidth]{conn_pool_code}
+  \caption{Figure 39: Data Base connection\_pool code}
+  \label{fig:conn-pool}
+\end{figure}
+\vspace{12pt}
+
+This is done using the \texttt{search\_path=public} parameter. By using it the table name
+resolution will always refer to the public schema without having to specify it manually. API
+routes that require database interaction invoke \texttt{get\_conn()} to get a connection from
+the pool. \texttt{put\_conn()} is invoked at the end block to release the connection,
+regardless of whether the interaction was successful or not. This is done to avoid leaking
+connections in case of errors.
+
+\vspace{12pt}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.85\textwidth]{aws_deployment}
+  \caption{Figure 40: AWS Deployment diagram}
+  \label{fig:aws-deployment}
+\end{figure}
+\vspace{12pt}
+
+\section{Android Mobile Application}
+\label{sec:android}
+
+The application is built using Flutter with the Dart programming language. It has four screens,
+which are accessed through a bottom navigation bar: Home, Data, Predictions, and Contact.
+Communication is done through the same Flask backend as the website using the same REST API
+endpoints. No separate server side changes are needed.
+
+The main entry point configures Google Fonts to use bundled fonts at build time
+(\texttt{allowRuntimeFetching = false}) and launches the \texttt{AirNestApp} widget, which sets
+up the Material.
+
+\textbf{Home Screen}
+
+The Home screen shows the same as the website page. Images are grouped as local resources in
+the \texttt{assets/images} folder.
+
+\textbf{Data Screen}
+
+It structure and functionality are the same as the specific page on the website. Charts are
+rendered using the \texttt{fl\_chart} library~\cite{flchart}, which renders line charts for
+every parameter of the monitored sensors. Missing values in the dataset are treated the same
+way as on the website when using Chart.js. Every chart has the same colors defined as on the
+website.
+
+\textbf{Predictions Screen}
+
+Predictions are fetched from \texttt{/api/predictions}, same as for the website. Card styles
+mimic styles on the predictions page of the website. DANGER cards have distinctive coloring.
+
+\textbf{Contact Screen}
+
+Contact screen, or ``Form page'' as it is on the website, has the same. When the form is
+submitted, data is passed via JSON POST to the \texttt{/api/contact} endpoint of the Flask
+server and saved to the \texttt{contact\_messages} table in the database. A success or error
+message is shown when submitted.
+
+\textbf{APK Distribution}
+
+APK is built in release mode and can be downloaded from the Download page of the website
+through the same process as the CSV download. It is distributed through a static file on the
+EC2 instance along with the website files. Release build requires
+\texttt{android:usesCleartextTraffic="true"} and \texttt{network\_security\_config.xml} to
+make plain HTTP connection to the Flask server due to absence of HTTPS on the backend.

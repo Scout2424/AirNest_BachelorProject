@@ -1,0 +1,354 @@
+%  AirNest – IoT Indoor Air Station
+%  Bachelor Thesis – Universitatea Politehnica Timișoara
+%  Tudor-Alexandru Matei, June 2026
+%
+%  TEMPLATE COMPLIANCE (Template_AC_EN_2026):
+%  - Font:         Arial 12 pt body text
+%  - Margins:      top 2.5 cm (incl. header), bottom 2 cm,
+%                  left 2 cm, right 2 cm   [template: 1134 DXA all sides]
+%    NOTE: template XML shows top=709 DXA (~1.25cm) with header=709 DXA,
+%    combined = 2.5 cm effective top — replicated here.
+%  - Line spacing: 1.15
+%  - First-line indent: 1.5 cm (justified text)
+%  - Chapter title: Arial 14 pt Bold Uppercase Center  (Heading 1)
+%  - Section title: Arial 12 pt Bold Uppercase Left    (Heading 2)
+%  - Page number:  bottom center, starts on Introduction page
+%  - Header:       starts on Introduction page,
+%                  line 1: "Politehnica University of Timișoara" (8 pt, left)
+%                  line 2: program name + year (8 pt, left)
+%                  line 3: candidate name (left) + thesis title (right implied)
+%                  + UPT logo top-right (optional)
+%  - Figures:      centered, caption below, blank line before/after
+%  - Tables:       centered, caption ABOVE, blank line before/after
+%  - Formulas:     equation environment, right-aligned numbering
+%  - Bibliography: IEEE citation style, numeric [n], order of appearance
+
+
+\documentclass[12pt, a4paper, oneside, openany]{report}
+
+% ── Encoding & language ─────────────────────────────────────
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english,romanian]{babel}
+
+% ── Font: Arial (template specifies Arial throughout) ───────
+\usepackage{helvet}                    % Helvetica ≈ Arial in LaTeX/PDF
+\renewcommand{\familydefault}{\sfdefault}
+
+%  Page geometry (from template XML) 
+% top=709+709 DXA (margin+header) = 1.25+1.25 = 2.5 cm effective
+% right=bottom=left=1134 DXA = 2 cm
+\usepackage[
+  a4paper,
+  top=2.5cm,
+  bottom=2cm,
+  left=2cm,
+  right=2cm,
+  headheight=1.25cm,
+  headsep=0pt
+]{geometry}
+
+%  Line spacing: 1.15 (template: 276/240) 
+\usepackage{setspace}
+\setstretch{1.15}
+
+%  Paragraph formatting 
+% First-line indent 1.5 cm (851 DXA), justified text
+\usepackage{indentfirst}
+\setlength{\parindent}{1.5cm}
+\setlength{\parskip}{0pt}
+
+%  Graphics & colours 
+\usepackage{graphicx}
+\usepackage[dvipsnames,svgnames,table]{xcolor}
+\graphicspath{{figures/}}
+
+%  TikZ (for title page AC logo drawing) 
+\usepackage{tikz}
+
+%  Tables 
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{tabularx}
+\usepackage{makecell}
+
+% ── Captions ────────────────────────────────────────────────
+% Figures: caption BELOW, centered
+% Tables:  caption ABOVE, centered
+\usepackage[
+  font={small},
+  labelfont={bf},
+  justification=centering,
+  skip=6pt
+]{caption}
+\usepackage{subcaption}
+
+% Table caption above: place \caption before tabular
+% Figure caption below: place \caption after includegraphics
+
+%  Code listings 
+\usepackage{listings}
+\usepackage{lstautogobble}
+
+\definecolor{codebg}{HTML}{F8F8F8}
+\definecolor{codeframe}{HTML}{CCCCCC}
+\definecolor{codecomment}{HTML}{5A7A55}
+\definecolor{codestring}{HTML}{A31515}
+\definecolor{codekeyword}{HTML}{0000FF}
+
+\lstdefinestyle{pythonstyle}{
+  language=Python,
+  backgroundcolor=\color{codebg},
+  frame=single, framerule=0.5pt, rulecolor=\color{codeframe},
+  basicstyle=\ttfamily\small,
+  keywordstyle=\color{codekeyword}\bfseries,
+  stringstyle=\color{codestring},
+  commentstyle=\color{codecomment}\itshape,
+  numberstyle=\tiny\color{gray},
+  numbers=left, numbersep=8pt,
+  breaklines=true, breakatwhitespace=true,
+  showstringspaces=false,
+  tabsize=4,
+  autogobble=true,
+  captionpos=b
+}
+
+\lstdefinestyle{sqlstyle}{
+  language=SQL,
+  backgroundcolor=\color{codebg},
+  frame=single, framerule=0.5pt, rulecolor=\color{codeframe},
+  basicstyle=\ttfamily\small,
+  keywordstyle=\color{codekeyword}\bfseries,
+  stringstyle=\color{codestring},
+  commentstyle=\color{codecomment}\itshape,
+  numberstyle=\tiny\color{gray},
+  numbers=left, numbersep=8pt,
+  breaklines=true,
+  showstringspaces=false,
+  tabsize=2,
+  autogobble=true,
+  captionpos=b
+}
+
+\lstdefinestyle{jsstyle}{
+  language=JavaScript,
+  backgroundcolor=\color{codebg},
+  frame=single, framerule=0.5pt, rulecolor=\color{codeframe},
+  basicstyle=\ttfamily\small,
+  keywordstyle=\color{codekeyword}\bfseries,
+  stringstyle=\color{codestring},
+  commentstyle=\color{codecomment}\itshape,
+  numberstyle=\tiny\color{gray},
+  numbers=left, numbersep=8pt,
+  breaklines=true,
+  showstringspaces=false,
+  tabsize=2,
+  autogobble=true,
+  captionpos=b
+}
+
+\lstset{style=pythonstyle}
+
+% ── Maths ───────────────────────────────────────────────────
+\usepackage{amsmath, amssymb}
+
+% ── URLs & hyperlinks ───────────────────────────────────────
+\usepackage[
+  colorlinks=true,
+  linkcolor=black,
+  citecolor=black,
+  urlcolor=blue,
+  bookmarks=true,
+  pdftitle={AirNest – IoT Indoor Air Station},
+  pdfauthor={Tudor-Alexandru Matei}
+]{hyperref}
+\usepackage{url}
+
+%  Bibliography: IEEE numeric style 
+% Numbers in brackets [1], ordered by appearance
+\usepackage[numbers,sort&compress]{natbib}
+\bibliographystyle{IEEEtranN}
+% If IEEEtranN is not installed on Overleaf, use: ieeetr
+
+%  Headers & footers 
+%
+%  TITLE PAGE header (firstpage style):
+%    LEFT:   AC logo + "Facultatea de Automatica si Calculatoare"
+%            *** Upload logo_ac.png to the figures/ folder (see README) ***
+%    CENTRE: "Faculty of Automation and Computers" bold
+%            "Bachelor Program: Computer and Information Technology" bold
+%    RIGHT:  UPT logo (bundled as logo_upt.png)
+%
+%  RUNNING header (mainpages, from Introduction onwards):
+%    LEFT:   4-line text block, 8 pt
+%    RIGHT:  UPT logo
+%
+%  FOOTER: "- N -" centred on all content pages
+%
+\usepackage{fancyhdr}
+
+% ── Plain style: used automatically by \chapter on its first page
+%    and by abstract/TOC pages.
+%    We split this into two named styles:
+%      'plain'     -> no header, no footer  (abstract, TOC)
+%      'chapterstart' -> full mainpages header (first page of every chapter)
+%
+%    The trick: redefine 'plain' AFTER \pagestyle{mainpages} is set so
+%    that \chapter's forced \thispagestyle{plain} still shows the header.
+%    We do this by making 'plain' a copy of 'mainpages' from that point on.
+%    For the abstract/TOC we use \pagestyle{empty} instead.
+\fancypagestyle{plain}{%
+  \fancyhf{}
+  \setlength{\headheight}{2.2cm}
+  \renewcommand{\headrulewidth}{0.4pt}
+  \renewcommand{\footrulewidth}{0pt}
+  \fancyhead[L]{%
+    \parbox[b]{9cm}{\fontsize{8}{10.5}\selectfont
+      Computers and Information Technology\\
+      2025-2026\\
+      Tudor-Alexandru Matei\\
+      AirNest -- IoT Indoor Air Station}%
+  }
+  \fancyhead[R]{%
+    \raisebox{-0.55cm}{\includegraphics[height=1.55cm]{logo_upt}}%
+  }
+  \fancyfoot[C]{\fontsize{10}{12}\selectfont- \thepage\ -}
+}
+
+\
+%  First-page header (title page only) 
+% Matches Image 2: AC logo left | bold English centre | UPT logo right
+% logo_ac.png = upload to figures/ (see README)
+\fancypagestyle{firstpage}{%
+  \fancyhf{}
+  \setlength{\headheight}{2.2cm}
+  \renewcommand{\headrulewidth}{0.4pt}
+  \renewcommand{\footrulewidth}{0pt}
+  \fancyhead[L]{%
+    \raisebox{-0.55cm}{\includegraphics[height=1.55cm]{logo_ac}}%
+    \hspace{5pt}%
+    \parbox[b]{3.5cm}{\fontsize{7.5}{9}\selectfont\textit{Facultatea de\\Automatica si\\Calculatoare}}%
+  }
+  \fancyhead[C]{%
+    \parbox[b]{5.5cm}{\centering\fontsize{8}{10}\selectfont
+      \textbf{Faculty of Automation and Computers}\\[2pt]
+      \textbf{Bachelor Program: Computer and}\\[1pt]
+      \textbf{Information Technology}}%
+  }
+  \fancyhead[R]{%
+    \raisebox{-0.55cm}{\includegraphics[height=1.55cm]{logo_upt}}%
+  }
+  \fancyfoot[C]{}
+}
+
+%  Running header (Introduction onwards) 
+% Matches Image 1: 4-line text block left | UPT logo right
+\fancypagestyle{mainpages}{%
+  \fancyhf{}
+  \setlength{\headheight}{2.2cm}
+  \renewcommand{\headrulewidth}{0.4pt}
+  \renewcommand{\footrulewidth}{0pt}
+  \fancyhead[L]{%
+    \parbox[b]{9cm}{\fontsize{8}{10.5}\selectfont
+      Computers and Information Technology\\
+      2025-2026\\
+      Tudor-Alexandru Matei\\
+      AirNest -- IoT Indoor Air Station}%
+  }
+  \fancyhead[R]{%
+    \raisebox{-0.55cm}{\includegraphics[height=1.55cm]{logo_upt}}%
+  }
+  \fancyfoot[C]{\fontsize{10}{12}\selectfont- \thepage\ -}
+}
+
+
+%  Chapter / section title formatting 
+% Template: Chapter = 14 pt Bold Uppercase Center (Heading 1)
+%           Section = 12 pt Bold Uppercase Left   (Heading 2)
+%           Subsection = 12 pt Bold Left          (Heading 3)
+\usepackage{titlesec}
+
+\titleformat{\chapter}[block]
+  {\normalfont\fontsize{14}{16}\bfseries\centering\MakeUppercase}
+  {\thechapter.}{0.5em}{}
+\titlespacing*{\chapter}{0pt}{0pt}{12pt}
+% Each chapter begins on a new page (handled by \chapter itself in report class)
+
+\titleformat{\section}[block]
+  {\normalfont\fontsize{12}{14}\bfseries\MakeUppercase}
+  {\thesection}{0.5em}{}
+\titlespacing*{\section}{0pt}{12pt}{12pt}
+
+\titleformat{\subsection}[block]
+  {\normalfont\fontsize{12}{14}\bfseries}
+  {\thesubsection}{0.5em}{}
+\titlespacing*{\subsection}{0pt}{12pt}{6pt}
+
+\titleformat{\subsubsection}[block]
+  {\normalfont\fontsize{12}{14}\itshape}
+  {\thesubsubsection}{0.5em}{}
+\titlespacing*{\subsubsection}{0pt}{6pt}{6pt}
+
+%  Miscellaneous 
+\usepackage{enumitem}
+\setlist{noitemsep, topsep=6pt}       % tighter lists
+\usepackage{float}
+\usepackage{microtype}
+\usepackage{emptypage}
+
+% Blank line between figure/table and surrounding text
+% (template: "There will be a blank line (Arial 12 pt) between the figure and the text")
+\setlength{\intextsep}{12pt}
+\setlength{\textfloatsep}{12pt}
+\setlength{\floatsep}{12pt}
+
+%  Convenience commands 
+\newcommand{\RPi}{Raspberry~Pi~4~Model~B}
+\newcommand{\airnest}{\textit{AirNest}}
+\newcommand{\TODO}[1]{\textbf{\textcolor{red}{[TODO: #1]}}}
+
+% 
+\begin{document}
+
+%  Title page: uses firstpage header style 
+\pagenumbering{arabic}
+\setcounter{page}{1}
+\pagestyle{firstpage}       % AC logo | text | UPT logo — no footer
+
+\input{chapters/00_titlepage}
+
+%  Abstracts (pages 2-3): empty = no header, no footer ─────
+\pagestyle{empty}
+\input{chapters/01_abstract}
+
+%  Table of contents: also no header 
+\pagestyle{empty}
+\tableofcontents
+\listoffigures
+\listoftables
+
+\clearpage
+
+%  Switch to header/footer for main content 
+\pagestyle{mainpages}
+
+%  Main chapters 
+\input{chapters/02_introduction}
+\input{chapters/03_state_of_the_art}
+\input{chapters/04_technologies}
+\input{chapters/05_design}
+\input{chapters/06_implementation}
+\input{chapters/07_testing}
+\input{chapters/08_ai_usage}
+\input{chapters/09_conclusions}
+
+
+
+%  Bibliography (IEEE numeric, order of appearance) 
+\bibliography{references}
+
+%  Appendix: full-page images 
+\input{chapters/10_appendix}
+\end{document}

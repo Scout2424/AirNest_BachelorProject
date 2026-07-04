@@ -1,0 +1,98 @@
+%  03_state_of_the_art.tex  –  Chapter 2: State of the Art
+% 
+
+\chapter{State of the Art}
+\label{ch:sota}
+
+\section{Air Quality Monitoring Systems}
+\label{sec:aq-monitoring}
+
+Indoor air quality monitoring has become an increasingly important research topic, driven by
+growing evidence linking extended exposure to indoor pollutants with chronic health conditions
+such as respiratory infections, cardiovascular disease, and lung cancer. IoT technologies are
+now used to provide real-time data collection, at a more affordable price.
+
+The parameters which are most monitored are temperature, humidity, CO\textsubscript{2}, carbon
+monoxide, particulate matter and volatile organic compounds. Used sensors are usually low-cost,
+connected to Arduino or Raspberry Pi units, which have the role of processing units. A review
+by Marques (2020) of 40 IoT-based indoor air quality systems showed that 35\% used
+Raspberry Pi, confirming it as one of the most popular platforms for this type of
+application~\cite{marques2020}. From the same review we find out that 72.5\% of systems claim
+energy efficiency as a design goal. Also the fact that cloud connection is favored for data
+storage and remote access.
+
+The main issue in this field is finding the balance between sensor coverage, costs and data
+reliability. Ganesan et al.\ (2021) demonstrated that a Raspberry Pi-based system monitoring
+10 simultaneous environmental parameters, including CO, CO\textsubscript{2}, NO\textsubscript{2},
+SO\textsubscript{2}, O\textsubscript{3}, and TVOCs, can be built at low cost and deployed in
+real residential and office environments~\cite{ganesan2021}. This showed that monitoring
+multiple pollutants was not only possible from a consumer standpoint, but also that different
+environments have different levels of pollutants, resulting in the importance of local
+monitoring. Likewise, Kim et al.\ (2024) successfully developed and tested a low-cost system
+using Raspberry Pi to measure 11 environmental parameters and succeeded in obtaining stable
+measurements from sensors after testing for statistics at a cost of around 94 USD worth of
+hardware~\cite{kim2024}.
+
+A popular trend in this field is now the use of prediction capabilities in monitoring systems.
+Fahmy et al.\ (2021) suggested a hybrid deep learning system using CNN and LSTM layers to
+predict hourly air quality with the optimization performed for Raspberry Pi
+4~\cite{fahmy2021}. Later, Gardner et al.\ (2024) looked into TinyML approaches to develop
+light-weight prediction models to run on microcontrollers that are capable of predicting air
+quality despite having limited resources~\cite{gardner2024}. The mentioned publications provided
+inspiration for the prediction component of this project.
+
+\section{Similar Works}
+\label{sec:similar-works}
+
+Currently, several commercial and research-based air quality monitoring systems are available.
+These range from products destined for consumers to research-oriented IoT platforms. Each type
+having their own features and limitations.
+
+The \textbf{Awair Element} is a product type indoor air quality monitor. It tracks values of
+temperature, humidity, CO\textsubscript{2}, TVOCs and PM2.5. It connects to a smartphone
+application and displays real-time readings and an air quality score. It doesn't offer the
+option to export the raw data read or to make changes to the sensors~\cite{awair}.
+
+\textbf{uRADMonitor A3} is a more advanced product device. Its target audience are consumers
+and researchers. It monitors a wider range of pollutants and it sends data to a central online
+platform. It supports data export, but it only offers limited hardware modification possibility
+or local data hosting~\cite{uradmonitor}.
+
+Below are characteristics specific to these two products and also characteristics of this
+project, all side by side:
+
+\vspace{12pt}
+
+\begin{table}[H]
+  \centering
+  \caption{Table 1. System characteristics comparison}
+  \label{tab:comparison}
+  \renewcommand{\arraystretch}{1.3}
+  \begin{tabularx}{\textwidth}{|l|X|X|X|}
+    \hline
+    \textbf{Feature} & \textbf{Awair Element} & \textbf{uRADMonitor A3} & \textbf{Current Project} \\
+    \hline
+    Hardware platform
+      & Proprietary
+      & Proprietary
+      & Raspberry Pi 4 \\
+    \hline
+    Monitored parameters
+      & Temp, humidity, CO\textsubscript{2}, TVOC, PM2.5
+      & PM, O\textsubscript{3}, HCHO, and others
+      & Temp, humidity, CO, LPG, alcohol, H\textsubscript{2}, air quality, sound \\
+    \hline
+    Web interface    & No  & Online platform & Yes \\
+    \hline
+    Mobile interface & Yes & No  & Yes \\
+    \hline
+    Data export (CSV)& No  & Limited & Yes \\
+    \hline
+    ML prediction    & No  & No  & Yes \\
+    \hline
+    Open / customizable & No & Partial & Yes \\
+    \hline
+    Cost & \textasciitilde\$299 & \textasciitilde\$350 & Below \$100 \\
+    \hline
+  \end{tabularx}
+\end{table}

@@ -1,0 +1,78 @@
+% 
+%  01_abstract.tex
+%  Template spec:
+%   - REZUMAT heading: Arial 20 pt Bold Uppercase Center
+%   - 3 blank 12pt lines BEFORE heading
+%   - 2 blank 12pt lines AFTER heading, then text begins
+%   - Text: Arial 12 pt, up to one page
+%   - English abstract 
+
+\thispagestyle{plain}
+\selectlanguage{romanian}
+
+\vspace*{3\baselineskip}
+
+\begin{center}
+{\fontsize{20}{24}\selectfont\textbf{\MakeUppercase{Rezumat}}}
+\end{center}
+
+\vspace{2\baselineskip}
+
+Această lucrare descrie proiectarea și implementarea \airnest{}, un prototip de stație de
+monitorizare a calității aerului din interior, bazat pe IoT. Componenta principală a
+dispozitivului este un \RPi{}, conectat la cinci senzori de gaz din seria MQ, care includ
+senzori pentru monoxid de carbon, hidrogen, GPL/Butan, alcool/Benzen și eCO\textsubscript{2}.
+Pe lângă acestea, există un senzor DHT11 pentru măsurarea temperaturii și umidității, un
+senzor de sunet KY-037 și un convertor analog-digital MCP3208.
+
+Valorile calculate sunt înregistrate la fiecare 30 de minute. Datele colectate sunt înregistrate
+mai întâi într-un fișier CSV local pe Raspberry Pi. Acestea sunt încărcate simultan pe un server
+Flask pe AWS EC2 prin intermediul bazei de date PostgreSQL pe AWS RDS. Site-ul web, creat pentru
+această stație, oferă mijloace pentru a vizualiza toate citirile prin intermediul graficelor,
+a descărca datele brute și a vedea predicțiile făcute de o conductă de predicție prin
+învățare automată pentru următoarele 7 zile. Predicțiile sunt făcute folosind date
+meteorologice istorice Open-Meteo, măsurători oficiale ale calității aerului din SEE de la
+patru stații de monitorizare din Timișoara și citirile live ale senzorilor.
+
+Testele au arătat că măsurătorile efectuate de senzori au rezultate consistente atunci când sunt
+efectuate consecutiv și după un anumit timp în care se pot supraîncălzi. S-a stabilit că
+întreaga conductă de date end-to-end, procedurile de autentificare, controlul accesului,
+filtrarea datelor, cadrul predictiv și modul de întreținere au fost funcționale după mai
+multe teste reușite. Sistemul și-a îndeplinit funcția preconizată de a crea o stație de
+monitorizare a calității aerului din interior la prețuri accesibile, cu acces permanent la date.
+
+%  English Abstract
+\newpage
+\thispagestyle{plain}
+\selectlanguage{english}
+
+\vspace*{3\baselineskip}
+
+\begin{center}
+{\fontsize{20}{24}\selectfont\textbf{\MakeUppercase{Abstract}}}
+\end{center}
+
+\vspace{2\baselineskip}
+
+This paper describes the design and implementation of \airnest{}, an IoT indoor air quality
+monitoring station prototype. The device's main component is a \RPi{} that is linked up with five
+gas sensors of the MQ series, which include sensors for carbon monoxide, hydrogen, LPG/Butane,
+alcohol/Benzene and eCO\textsubscript{2}. Besides them there is a DHT11 sensor for measuring
+temperature and humidity, a KY-037 sound sensor, and an MCP3208 analog-to-digital converter.
+
+Computed values are recorded every 30 minutes. Collected data is first recorded into a local CSV
+file on the Raspberry Pi. It is simultaneously uploaded to a Flask server on AWS EC2 through a
+PostgreSQL database on AWS RDS. The website, which was made for this station, provides means to
+see all the readings through charts, download the raw data and see the predictions made by a
+machine learning prediction pipeline for the next 7 days. Predictions are made using historical
+Open-Meteo weather data, official EEA air quality measurements from four Timișoara monitoring
+stations and the live sensor readings.
+
+Testing showed that the measurements made by the sensors have consistent readings when made
+consecutively and after some time in which they can heat up. It has been established that the
+entire end-to-end data pipeline, the authentication procedures, access control, data filtering,
+the predictive framework, and the maintenance mode were all functional after multiple successful
+tests. Through all of this, the system manages to create an affordable indoor air quality
+monitoring station with permanent access to the data.
+
+\newpage

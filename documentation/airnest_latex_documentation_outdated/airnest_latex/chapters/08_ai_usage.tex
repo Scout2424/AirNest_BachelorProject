@@ -1,0 +1,40 @@
+%  08_ai_usage.tex  –  Use of Artificial Intelligence
+
+\chapter*{Use of Artificial Intelligence}
+\addcontentsline{toc}{chapter}{Use of Artificial Intelligence}
+\label{ch:ai-usage}
+
+Throughout the lifecycle of this academic project, artificial intelligence (AI) was integrated
+as a support assistant to enhance productivity across both the technical implementation and the
+documentation phases. The tool utilized was the Large Language Model
+Claude~\cite{claudeai}.
+
+In the software development phase, AI assistance was used for code improvement, backend logic
+and user interface design. Specifically, the tool supported the creation of the edge computing
+script \texttt{predict.py}, which is deployed via \textit{cron} on the Raspberry Pi 4 to
+compute daily 7-day air quality forecasts, as well as the complete machine learning training
+pipeline executed within the Google Colab notebook
+\texttt{AirQuality\_ML\_Training.ipynb}. On the server side, the backend prediction and
+administrative messaging endpoints were integrated into \texttt{web\_db\_connection.py} with
+AI support. Furthermore \texttt{predictions.html} was developed using the tool. It also helped
+with the application's cascading stylesheet (\texttt{style.css}), which accelerated the
+implementation of layout architecture, responsive design, and component-level styling.
+
+Another use for the AI assistant was as a diagnostic asset for root-cause analysis during
+system debugging. It proved instrumental in identifying and resolving critical bugs or
+irregularities that occurred during development.
+
+It also helped navigating different AWS features and how to set them up correctly. Furthermore,
+AI was utilized for suggestions on how to structure a research paper.
+
+AI was also used to speed up the process of creating the Android mobile application. Its help
+was needed in places where something new appeared or some technical details had to be resolved,
+such as: creation of the HTTP API service layer for connection between the app and Flask server
+and configuration of plain HTTP traffic support through \texttt{network\_security\_config.xml}.
+It also assisted with \texttt{android:usesCleartextTraffic} attribute of manifest file and the
+implementation of bottom navigation bar with tab states which are saved based on
+\texttt{IndexedStack}.
+
+In conclusion, AI was used with the role of assistant. It accelerated development, helped
+identify bugs and assisted with the documentation. All AI-generated code was reviewed manually
+and tested against the actual hardware and server environment before being considered complete.

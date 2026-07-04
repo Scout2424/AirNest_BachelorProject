@@ -1,0 +1,87 @@
+%  09_conclusions.tex  –  Chapter 7: Conclusions and Future Work
+
+
+\chapter{Conclusions and Future Work}
+\label{ch:conclusions}
+
+\section{Conclusions}
+\label{sec:conclusions}
+
+In conclusion, this thesis presents the indoor air station (\airnest{}), a complete, functional
+low-cost IoT-based environmental monitoring system designed for residential use. For the part
+related to taking readings it features MQ gas sensors, a DHT11 sensor and a KY-037 sensor. The
+Raspberry Pi 4B is used as the central processing unit. The project embodies a system that
+collects, stores, computes and presents multiple air quality parameters in real life.
+
+The hardware product reads: five gas sensors: carbon monoxide, hydrogen, LPG/butane,
+alcohol/benzene; temperature, humidity; ambient and sudden spikes when it comes to the sound
+level (at 30 minutes intervals). The raw ADC values are converted to voltages, corrected for
+the voltage divider configuration. Afterwards the power-law formula to compute PPM
+concentrations is used. In order to have an increased accuracy, a temperature and humidity
+correction factor derived from Hanwei application notes~\cite{hanwei} is used for the PPM
+values. Warnings are generated when the values go over the approximate safety thresholds.
+
+The data related to the readings is locally saved in a CSV file (on the Raspberry Pi). This
+way a backup is always present, in case something stops working properly. Each reading is also
+sent, as a JSON payload over HTTP, to the Flask server, which is hosted on AWS EC2. There, the
+data is inserted in the PostgreSQL database (hosted on AWS RDS). The cloud based architecture
+makes sure that the data is always available, even if the station is stopped.
+
+The website provides a complete interface for interacting with the data. All the collected and
+computed readings can be seen on the Data page, through the line charts (rendered using
+Chart.js~\cite{chartjs}). The user authentication system supports registration with email
+verification. The password is stored in a secure manner. For this bcrypt hashing and a
+token-based password reset flow were used. Users who are authenticated can download all the
+sensor related data as a CSV file. They can also choose to download the mobile app (through
+\texttt{.apk}), which offers the users the possibility to look at the data charts and
+predictions, as well as access to write in the contact form. The app is made from the already
+existing website pages (home page, data page, prediction page and form page). The website also
+has an admin page (accessed through the admin account) from which the logged in users can be
+seen and also the contact messages. This part also has a toggle to put the entire website in
+``maintenance'' mode. The contact form allows users to send messages to the administrator,
+even if they are not registered or logged in.
+
+This product achieves its intended purpose: to provide a low-cost, open and customizable
+apartment air quality monitoring station, whose data can be always accessed online. It also
+gives the user full data visualization and ownership capabilities.
+
+\section{Future Work}
+\label{sec:future-work}
+
+Several directions for further development have been identified during the course of this
+project, ranging from immediate hardware and software improvements to planned new features.
+
+The DHT11 sensor should be moved even further away from the rest of the cramped hardware parts,
+since the heat radiating from the rest of the components could make it register wrong readings
+instead. The best solution would be to move it to a new breadboard, at least 20 centimeters
+away from the rest.
+
+The MQ7 sensor was found to read values higher than the expected amount. This is due to the
+fact that its accuracy tolerance is of around $\pm$15--30\,\% even when properly calibrated and
+this sensor also being more accurate for higher value readings. In the future it would be best
+to replace this sensor with a more precise one when it comes to lower values.
+
+The neighbourhood label is currently configured through a terminal prompt at startup and cannot
+be changed while the station is running. A more practical solution would be to read this value
+from a configuration file at startup, allowing the user to update it between sessions without
+modifying the code.
+
+For further training the AI models, dataset size must be bigger in order to provide better
+results. The local sensor history is still limited. Model accuracy will improve as long as more
+data is collected and used for retraining.
+
+Adding sensors specific for reading values for PM2.5 and PM10 would further improve the
+capabilities of the station. This way it would be brought closer to the feature set of
+commercial air quality monitors reviewed in Chapter 2.
+
+Placing the hardware station in a protective case would increase the likelihood of the project
+to be compared more to a real, commercial product, besides offering protection to the
+components.
+
+A cooling mechanism should be added for the entire hardware part. The Raspberry Pi overheats
+after a time of continuous operation and the MQ sensors need a preheating time to give accurate
+reading, time which takes longer the warmer it is around.
+
+Adding the option to start the Raspberry Pi script through the mobile application by using
+Bluetooth would bring it closer to a real, sellable product, while also making accessibility
+easier for the user.

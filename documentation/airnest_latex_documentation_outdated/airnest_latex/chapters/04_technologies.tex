@@ -1,0 +1,212 @@
+% 
+%  04_technologies.tex  –  Chapter 3: Technologies Used
+% 
+
+\chapter{Technologies Used}
+\label{ch:technologies}
+
+\subsection*{Raspberry Pi 4 Model B}
+
+Raspberry Pi 4 Model B is a single-board computer developed by the Raspberry Pi
+Foundation~\cite{rpi4specs}. In this project it has the following uses: central processing
+unit, reading sensor data, computing gas concentrations, applying correction factors and
+warning generation.
+
+\vspace{12pt}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.4\textwidth]{rpi4}
+  \caption{Figure 1: Raspberry Pi 4 Model B (\url{https://www.robot-advance.com/EN/art-raspberry-pi-4-model-b-4go-2640.htm})}
+  \label{fig:rpi4}
+\end{figure}
+\vspace{12pt}
+
+\subsection*{Sensors}
+
+\textbf{DHT11} is a low-cost digital sensor for measuring temperature and humidity. It
+communicates with Raspberry Pi through a single-wire digital interface and is directly
+connected to a GPIO pin (pin 16). A 5\,k$\Omega$ pull-up resistor is placed between the VCC
+and the data lines to guarantee signal stability. It works on 3.3\,V and its readings are used
+in monitoring and correcting MQ sensor PPM calculations.
+
+\vspace{12pt}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.3\textwidth]{dht11}
+  \caption{Figure 2: DHT11 sensor (\url{https://www.optimusdigital.ro/ro/senzori-senzori-de-temperatura/99-senzor-de-temperatura-si-si-umiditate-dht11.html})}
+  \label{fig:dht11}
+\end{figure}
+\vspace{12pt}
+
+\textbf{MQ-135} is an analog gas sensor sensitive to a broad range of air pollutants, used in
+this project primarily as an indicator of overall air quality and estimated CO\textsubscript{2}
+equivalent (eCO\textsubscript{2}) concentration. It works on 5\,V and the output is an analog
+voltage in proportion to gas concentration. Raspberry Pi lacks native analog input, so the
+sensor is connected through the MCP3208 by a voltage divider. The divider is formed of a
+1\,k$\Omega$ and 2\,k$\Omega$ resistor combination. All voltage dividers from this project are
+of the same build.
+
+\vspace{12pt}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.3\textwidth]{mq135}
+  \caption{Figure 3: MQ-135 sensor (\url{https://sigmanortec.ro/Senzor-calitate-aer-MQ-135-p126101726})}
+  \label{fig:mq135}
+\end{figure}
+\vspace{12pt}
+
+The \textbf{MQ-3} sensor is analog. Its function is to detect alcohol vapor and benzene. The
+sensor is interfaced to the MCP3208 ADC using a resistor voltage divider. The sensor works at
+5\,volts.
+
+\vspace{12pt}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.3\textwidth]{mq3}
+  \caption{Figure 4: MQ-3 sensor (\url{https://sigmanortec.ro/Senzor-gaz-MQ-3-Alcool-Etanol-p126101225})}
+  \label{fig:mq3}
+\end{figure}
+\vspace{12pt}
+
+\textbf{MQ-6}, an analog sensor, is used to detect LPG and butane gases. It helps monitor
+gas leaks in a home environment. Connected through MCP3208 ADC by using the resistor voltage
+divider and it works on 5\,V.
+
+\vspace{12pt}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.3\textwidth]{mq6}
+  \caption{Figure 5: MQ-6 sensor (\url{https://www.optimusdigital.ro/en/gas-sensors/1132-modul-senzor-de-gaz-mq-6.html})}
+  \label{fig:mq6}
+\end{figure}
+\vspace{12pt}
+
+\textbf{MQ-7}, an analog sensor, detects carbon monoxide (CO), a colorless and odorless gas
+that poses a serious health risk even at low concentrations. Connected through the MCP3208 ADC
+by using a resistor voltage divider and it operates on 5\,V.
+
+\vspace{12pt}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.3\textwidth]{mq7}
+  \caption{Figure 6: MQ-7 sensor (\url{https://uk.robotshop.com/products/mq-7-gas-sensor})}
+  \label{fig:mq7}
+\end{figure}
+\vspace{12pt}
+
+\textbf{MQ-8} is an analog sensor which detects hydrogen gas (H\textsubscript{2}). Connected
+through the MCP3208 ADC by using a resistor voltage divider and it operates on 5\,V.
+
+\vspace{12pt}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.3\textwidth]{mq8}
+  \caption{Figure 7: MQ-8 sensor (\url{https://www.optimusdigital.ro/en/gas-sensors/1131-modul-senzor-de-gaz-mq-8.html})}
+  \label{fig:mq8}
+\end{figure}
+\vspace{12pt}
+
+\textbf{KY-037} is a sound detection module that provides both a digital output (DOUT) and an
+analog output (AOUT). The analog output is read through the MCP3208 to measure the background
+ambient sound level as a voltage, while the digital output is connected directly to a GPIO pin
+and monitored via hardware interrupt to count discrete sound events within each 5-second
+measurement cycle.
+
+\vspace{12pt}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.3\textwidth]{ky037}
+  \caption{Figure 8: KY-037 sensor (\url{https://ardushop.ro/en/modules/1589-high-sensitivity-sound-detection-microphone-module-ky-037-6427854023735.html})}
+  \label{fig:ky037}
+\end{figure}
+\vspace{12pt}
+
+\subsection*{MCP3208}
+
+The MCP3208 is an 8-channel, 12-bit analog-to-digital converter (ADC) that communicates with
+the Raspberry Pi over the SPI (Serial Peripheral Interface) protocol~\cite{mcp3208}. Since the
+Raspberry Pi GPIO pins only accept digital signals, the MCP3208 is essential to make the
+connection between analog MQ sensors and the KY-037 sound sensor and the Raspberry Pi. It works
+on 3.3\,V and is connected to Raspberry Pi's SPI pins (CLK on pin 23, MOSI on pin 19, MISO on
+pin 21, and CS on pin 24).
+
+\vspace{12pt}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.35\textwidth]{mcp3208}
+  \caption{Figure 9: MCP3208 (\url{https://www.digikey.ro/en/products/detail/microchip-technology/MCP3208-CI-P/305928})}
+  \label{fig:mcp3208}
+\end{figure}
+\vspace{12pt}
+
+\subsection*{Additional Hardware Components}
+
+Two LEDs (blue and red) are used as simple visual indicators. The blue LED signals when data is
+sent to the server. The red LED lights up when a warning condition is detected.
+
+A button is used to start or stop the sensor readings when pressed.
+
+\subsection*{Python}
+
+Python is a programming language which focuses on code readability, simplicity, ease of
+writing, while also offering a large library. It also supports a wide range of applications,
+from web development to data analysis and machine learning.
+
+\subsection*{Flask}
+
+Flask is a lightweight Python web framework. It was used to build the backend of the
+project~\cite{flask}. It is designed to make scalability of apps easy.
+
+\subsection*{PostgreSQL and AWS RDS}
+
+PostgreSQL is an open-source relational database system~\cite{postgresql}. In this project it
+stores all sensor readings, registered user accounts, form messages and site settings. The
+database is hosted on Amazon Web Services (AWS) Relational Database Service
+(RDS)~\cite{awsrds}. This manages the database related part without requiring manual server
+administration.
+
+\subsection*{AWS EC2}
+
+Amazon Web Services Elastic Compute Cloud (EC2) is a cloud computing service~\cite{awsec2}. It
+provides virtual server instances accessible over the internet. In this project, an EC2 instance
+hosted in the EU (Stockholm) region runs the Flask server continuously, making the website and
+the sensor data API permanently available online. The EC2 instance serves both the static
+website files and handles all API requests from the Raspberry Pi and from website users.
+
+\subsection*{HTML}
+
+Hypertext Markup Language (HTML) is the standard markup language for documents designed to be
+displayed in a web browser. It is used to define the content and structure of web content.
+
+\subsection*{CSS}
+
+Cascading Style Sheets (CSS) is a stylesheet language used to describe the presentation of a
+document written in HTML or XML. CSS is used to render elements on screen, paper, speech or on
+other media.
+
+\subsection*{Tailwind CSS}
+
+Tailwind CSS is a utility-first CSS framework that offers pre-built classes for styling HTML
+elements directly~\cite{tailwind}. In this project, Tailwind CSS was not used as the primary
+styling framework, however, specific UI components were adopted from Tailwind CSS for a faster
+implementation.
+
+\subsection*{JavaScript}
+
+JavaScript (JS) is a lightweight interpreted (or just-in-time compiled) programming language.
+It is mostly used as the scripting language for Web pages, but many non-browser environments
+also use it, such as Node.js, Apache CouchDB and Adobe Acrobat.
+
+\subsection*{Google Colab}
+
+Google Colab is a free cloud-based Jupyter notebook environment provided by Google, offering
+access to CPU and GPU compute resources without requiring local
+installation~\cite{googlecolab}. In this project, Google Colab was used as the training
+environment for both machine learning models.
+
+\subsection*{Flutter}
+
+Flutter is an open-source UI toolkit created by Google, used for developing applications for
+mobile, web and desktop. The application code is written in Dart and compiled into native ARM
+binary code for Android. In this project, Flutter was used for creating the \airnest{} Android
+app that replicates the functionality of certain pages of the website.

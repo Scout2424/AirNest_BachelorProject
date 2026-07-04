@@ -1,0 +1,115 @@
+%  05_design.tex  –  Chapter 4: Design
+
+
+\chapter{Design}
+\label{ch:design}
+
+\section{System Architecture}
+\label{sec:system-arch}
+
+The Indoor Air Station is composed of three main subsystems that work together to collect,
+store, and present environmental data:
+
+\begin{itemize}
+  \item The Raspberry Pi Monitoring Station
+  \item The AWS Cloud Backend
+  \item The Website Frontend
+\end{itemize}
+
+Data transfer among the subsystems takes place using a simple linear pipeline process. The
+sensors connected to the Raspberry Pi make measurements of the environment on a regular
+interval of 30 minutes. The Raspberry Pi processes the unprocessed data from the sensors,
+calculates the concentration of ppm for each gas sensor, compensates for temperature and
+humidity changes, determines the presence of warnings, and finally writes the whole
+measurement into the CSV local log file. After processing, the data is sent in a JSON payload
+via HTTP to the Flask server located in AWS cloud. Once there, the Flask server will check the
+validity of the data and add it to the PostgreSQL database present on AWS RDS service. If any
+user wants to access the data, they must first visit the website where the Flask server makes a
+query in the database and returns the results.
+
+The website operates separately from the Raspberry Pi since even when the server is not
+working, data collection and local logging go on without fail.
+
+From the website it is available to download the Android mobile application. Similar to the
+website, the app communicates with the Flask server over HTTP, consuming the same API
+endpoints. No new server side components are added. It shows the data and predictions similar
+to the website. It also contains the home and form pages.
+
+\vspace{12pt}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.85\textwidth]{system_architecture}
+  \caption{Figure 10 - System architecture diagram}
+  \label{fig:system-arch}
+\end{figure}
+\vspace{12pt}
+
+\section{Software Architecture}
+\label{sec:software-arch}
+
+The software side of the project is divided into two distinct components: the station software
+running on the Raspberry Pi and the backend running on AWS.
+
+The station program consists of a Python program running all the time on the Raspberry Pi.
+Initially, the software will set up the SPI for the MCP3208 ADC, initialize the DHT11
+temperature and humidity sensor, setup the GPIO pins used by the LED, the button, and the
+sound interrupt, get the geolocation of the station's device, and ask the user to input the
+neighborhood name where the station is located. The software starts another thread which will
+run the data collection process. A hardware interrupt function works separately from the other
+threads by counting the number of times sound is sensed using the KY-037 digital output module.
+
+The backend code comprises only one Flask app that processes the entire logic behind the server
+operations. This application serves static pages and receives sensor information provided by
+the Raspberry Pi, processes the authentication of user accounts by registering, verifying
+email addresses, and logging in, resetting passwords, processing the contact forms'
+information and serving filtered sensor information to the front-end pages and exporting the
+information in CSV format for logged-in users. Database connections are established using the
+connection pool technique to process simultaneous requests without establishing any new
+connections.
+
+\vspace{12pt}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.85\textwidth]{software_architecture}
+  \caption{Figure 11a - Software architecture diagram}
+  \label{fig:software-arch}
+\end{figure}
+\vspace{12pt}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.75\textwidth]{software_usecase}
+  \caption{Figure 11b: Software architecture use case}
+  \label{fig:software-usecase}
+\end{figure}
+\vspace{12pt}
+
+\section{Hardware Architecture}
+\label{sec:hardware-arch}
+
+The hardware of the station consists of two breadboards positioned side by side next to the
+Raspberry Pi 4B. The first breadboard has the DHT11 temperature and humidity sensor, the
+MCP3208 ADC, the KY-037 sound sensor, the two LEDs and the push button. The second breadboard
+carries the five MQ gas sensors: MQ135, MQ3, MQ6, MQ7, and MQ8. Both breadboards share a
+common power and ground rail, supplied by the Raspberry Pi's 3.3\,V and 5\,V pins.
+
+All five MQ sensors and the KY-037 analog output are connected to the MCP3208 ADC through
+individual voltage dividers, each formed by a 1\,k$\Omega$ and 2\,k$\Omega$ resistor pair,
+which scales the 5\,V sensor output down to the 3.3\,V range accepted by the ADC. The MCP3208
+communicates with the Raspberry Pi over the SPI bus. The DHT11 is connected directly to a GPIO
+pin with a 5\,k$\Omega$ pull-up resistor. The KY-037 digital output is connected directly to a
+separate GPIO pin for interrupt-based sound event counting. The two LEDs each have a
+220\,$\Omega$ current-limiting resistor. The push button is connected to a GPIO pin with the
+internal pull-down resistor enabled in software.
+
+The entire assembly is currently open hardware, though the compact form factor of the
+components means it can be placed in a small container-like object, like a box for example.
+
+\vspace{12pt}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.85\textwidth]{hardware_architecture}
+  \caption{Figure 12 - Hardware architecture diagram}
+  \label{fig:hardware-arch}
+\end{figure}
+\vspace{12pt}
