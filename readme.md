@@ -1,6 +1,6 @@
 # READ ME
 
-## GitHub link: https://github.com/Scout2424/LucrareLicenta_BachelorProject.git
+## GitHub link: https://github.com/Scout2424/AirNest_BachelorProject.git
 
 ## English Variant
 
