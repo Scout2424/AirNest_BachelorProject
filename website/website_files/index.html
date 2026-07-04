@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AirNest – Home</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <header>
+    <button class="btn-hamburger" onclick="toggleNav()" aria-label="Open menu">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="3" y1="6"  x2="21" y2="6" />
+        <line x1="3" y1="12" x2="21" y2="12"/>
+        <line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
+    </button>
+    <h1>Air<span>Nest</span></h1>
+    <div class="header-buttons">
+      <a href="sign_up.html" class="btn-signup" id="btn-signup">Sign Up</a>
+      <button type="button" class="btn-login" id="btn-login" onclick="openLoginModal()">Log In</button>
+      <a href="admin.html" class="btn-admin" id="btn-admin" style="display:none;">Admin Page</a>
+      <button type="button" class="btn-logout" id="btn-logout" onclick="handleLogout()" style="display:none;">Log Out</button>
+    </div>
+  </header>
+
+  <div class="nav-overlay" id="nav-overlay" onclick="closeNav()"></div>
+  <nav id="main-nav">
+    <a href="index.html" class="active">
+      <span class="nav-icon">🏠</span>
+      <span class="nav-label">Home</span>
+    </a>
+    <a href="data.html">
+      <span class="nav-icon">📊</span>
+      <span class="nav-label">Data</span>
+    </a>
+    <a href="form.html">
+      <span class="nav-icon">✉️</span>
+      <span class="nav-label">Form</span>
+    </a>
+    <a href="predictions.html">
+      <span class="nav-icon">🔮</span>
+      <span class="nav-label">Predictions</span>
+    </a>
+    <a href="download.html">
+      <span class="nav-icon">⬇️</span>
+      <span class="nav-label">Download</span>
+    </a>
+  </nav>
+
+  <main>
+    <div class="content-wrapper">
+      <h2 class="page-title">Welcome</h2>
+
+      <!-- ── PROJECT DESCRIPTION ── -->
+      <div class="home-description">
+        <p>
+          The present project is an air quality monitoring station that has been assembled
+          using a set of MQ gas sensors, a module to monitor temperature and humidity, and
+          a module for the detection of sound. All the data collected by this air quality
+          monitoring station is stored in a database.
+        </p>
+        <p>
+          Use the <strong>Data</strong> page to explore live and historical sensor readings
+          with interactive charts, filtered by date and location. The <strong>Predictions</strong>
+          page surfaces machine-learning forecasts derived from the collected data.
+          Registered users can also <strong>download</strong> the full dataset as a CSV.
+        </p>
+      </div>
+
+    </div><!-- end .content-wrapper — carousel breaks out wider -->
+
+    <!-- ── IMAGE CAROUSEL (wider than 720px content column) ── -->
+    <div class="carousel-outer">
+      <div class="carousel" id="carousel" aria-label="Station photos">
+        <div class="carousel-track" id="carousel-track">
+          <div class="carousel-slide"><img src="images/stationPic1.jpeg" alt="Station photo 1" /></div>
+          <div class="carousel-slide"><img src="images/stationPic2.jpeg" alt="Station photo 2" /></div>
+          <div class="carousel-slide"><img src="images/stationPic3.jpeg" alt="Station photo 3" /></div>
+          <div class="carousel-slide"><img src="images/stationPic4.jpeg" alt="Station photo 4" /></div>
+          <div class="carousel-slide"><img src="images/stationPic5.jpeg" alt="Station photo 5" /></div>
+          <div class="carousel-slide"><img src="images/stationPic6.jpeg" alt="Station photo 6" /></div>
+          <div class="carousel-slide"><img src="images/stationPic7.jpeg" alt="Station photo 7" /></div>
+          <div class="carousel-slide"><img src="images/stationPic8.jpeg" alt="Station photo 8" /></div>
+        </div>
+
+        <button class="carousel-btn carousel-btn--prev" id="carousel-prev" aria-label="Previous photo">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="15 18 9 12 15 6"/>
+          </svg>
+        </button>
+        <button class="carousel-btn carousel-btn--next" id="carousel-next" aria-label="Next photo">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9 6 15 12 9 18"/>
+          </svg>
+        </button>
+
+        <div class="carousel-dots" id="carousel-dots"></div>
+        <span class="carousel-counter" id="carousel-counter">1 / 8</span>
+      </div>
+    </div>
+
+    <div class="content-wrapper">
+      <!-- ── BOTTOM TEXT SECTION ── -->
+      <div class="home-bottom">
+        <h3 class="home-bottom-title">About the station</h3>
+        <p>
+          AirNest is built around a <strong>Raspberry Pi 4B</strong> and monitors indoor
+          air quality using five MQ-series gas sensors: the <strong>MQ-135</strong>
+          (equivalent CO₂ / general air quality), <strong>MQ-3</strong> (alcohol and
+          benzene), <strong>MQ-6</strong> (LPG and butane), <strong>MQ-7</strong>
+          (carbon monoxide), and <strong>MQ-8</strong> (hydrogen). A <strong>DHT11</strong>
+          module records temperature and humidity, and a <strong>KY-037</strong> sensor
+          tracks ambient sound levels and sudden sound events.
+        </p>
+        <p>
+          Readings are taken every 30 minutes and sent to a cloud database. The
+          <strong>Predictions</strong> page shows a daily 7-day forecast generated by two
+          machine learning models: <strong>Prophet</strong>, used for temperature and
+          humidity forecasting, and a <strong>Random Forest</strong> classifier, which
+          predicts whether air quality conditions are likely to reach a danger level based
+          on historical sensor data and weather forecasts from Open-Meteo.
+        </p>
+      </div>
+    </div>
+
+  </main>
+
+  <footer>© 2026 AirNest</footer>
+
+  <div id="toast-success" class="toast toast-success">
+    <span class="toast-icon">✓</span>
+    <span id="toast-success-msg">Done!</span>
+  </div>
+  <div id="toast-error" class="toast toast-error">
+    <span class="toast-icon">✕</span>
+    <span id="toast-error-msg">Something went wrong.</span>
+  </div>
+
+  <div id="login-modal" class="modal-overlay" style="display:none;">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 class="modal-title">Log In</h3>
+        <svg onclick="closeLoginModal()" xmlns="http://www.w3.org/2000/svg"
+          class="modal-close" viewBox="0 0 320.591 320.591">
+          <path d="M30.391 318.583a30.37 30.37 0 0 1-21.56-7.288c-11.774-11.844-11.774-30.973 0-42.817L266.643 10.665c12.246-11.459 31.462-10.822 42.921 1.424 10.362 11.074 10.966 28.095 1.414 39.875L51.647 311.295a30.366 30.366 0 0 1-21.256 7.288z"/>
+          <path d="M287.9 318.583a30.37 30.37 0 0 1-21.257-8.806L8.83 51.963C-2.078 39.225-.595 20.055 12.143 9.146c11.369-9.736 28.136-9.736 39.504 0l259.331 257.813c12.243 11.462 12.876 30.679 1.414 42.922-.456.487-.927.958-1.414 1.414a30.368 30.366 0 0 1-23.078 7.288z"/>
+        </svg>
+      </div>
+      <p class="modal-info">
+        Log in to download the data and the app. Browsing data is free — no login needed.
+      </p>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label" for="login-email">Email</label>
+          <input type="email" id="login-email" class="form-input"
+            placeholder="you@gmail.com or you@yahoo.com" />
+          <span class="form-error" id="login-email-error">Please enter your email.</span>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="login-password">Password</label>
+          <input type="password" id="login-password" class="form-input"
+            placeholder="Enter your password" />
+          <span class="form-error" id="login-password-error">Incorrect email or password.</span>
+        </div>
+        <div class="forgot-password-row">
+          <a href="#" class="forgot-password-link" onclick="openForgotModal(); return false;">Forgot password?</a>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="modal-btn-cancel" onclick="closeLoginModal()">Cancel</button>
+        <button type="button" class="modal-btn-confirm" onclick="handleLogin()">Log In</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Forgot Password Modal -->
+  <div id="forgot-modal" class="modal-overlay" style="display:none;">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 class="modal-title">Forgot Password</h3>
+        <svg onclick="closeForgotModal()" xmlns="http://www.w3.org/2000/svg"
+          class="modal-close" viewBox="0 0 320.591 320.591">
+          <path d="M30.391 318.583a30.37 30.37 0 0 1-21.56-7.288c-11.774-11.844-11.774-30.973 0-42.817L266.643 10.665c12.246-11.459 31.462-10.822 42.921 1.424 10.362 11.074 10.966 28.095 1.414 39.875L51.647 311.295a30.366 30.366 0 0 1-21.256 7.288z"/>
+          <path d="M287.9 318.583a30.37 30.37 0 0 1-21.257-8.806L8.83 51.963C-2.078 39.225-.595 20.055 12.143 9.146c11.369-9.736 28.136-9.736 39.504 0l259.331 257.813c12.243 11.462 12.876 30.679 1.414 42.922-.456.487-.927.958-1.414 1.414a30.368 30.366 0 0 1-23.078 7.288z"/>
+        </svg>
+      </div>
+      <p class="modal-info">Enter your email and we'll send you a link to reset your password.</p>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label" for="forgot-email">Email</label>
+          <input type="email" id="forgot-email" class="form-input"
+            placeholder="you@gmail.com or you@yahoo.com" />
+          <span class="form-error" id="forgot-email-error">Please enter your email.</span>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="modal-btn-cancel" onclick="closeForgotModal()">Cancel</button>
+        <button type="button" class="modal-btn-confirm" onclick="handleForgotPassword()">Send Reset Link</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = window.location.port
+      ? `${window.location.protocol}//${window.location.hostname}:${window.location.port}`
+      : `${window.location.protocol}//${window.location.hostname}`;
+
+    /* ── TOAST ── */
+    function showToast(type, message) {
+      if (message) document.getElementById('toast-' + type + '-msg').textContent = message;
+      const toast = document.getElementById('toast-' + type);
+      toast.classList.add('toast-visible');
+      setTimeout(() => toast.classList.remove('toast-visible'), 4000);
+    }
+
+    /* ── AUTH ── */
+    function setLoggedIn(loggedIn, isAdmin) {
+      document.getElementById('btn-signup').style.display = loggedIn ? 'none'        : 'inline-flex';
+      document.getElementById('btn-login').style.display  = loggedIn ? 'none'        : 'inline-flex';
+      document.getElementById('btn-logout').style.display = loggedIn ? 'inline-flex' : 'none';
+      document.getElementById('btn-admin').style.display  = isAdmin  ? 'inline-flex' : 'none';
+    }
+    function openLoginModal() {
+      closeForgotModal();
+      document.getElementById('login-modal').style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+    }
+    function closeLoginModal() {
+      document.getElementById('login-modal').style.display = 'none';
+      document.body.style.overflow = '';
+      document.getElementById('login-email').value = '';
+      document.getElementById('login-password').value = '';
+      document.getElementById('login-email-error').classList.remove('form-error--visible');
+      document.getElementById('login-password-error').classList.remove('form-error--visible');
+      document.getElementById('login-email').classList.remove('form-input--error');
+      document.getElementById('login-password').classList.remove('form-input--error');
+    }
+    document.getElementById('login-modal').addEventListener('click', function(e) {
+      if (e.target === this) closeLoginModal();
+    });
+    async function handleLogin() {
+      const emailInput = document.getElementById('login-email');
+      const passInput  = document.getElementById('login-password');
+      const emailErr   = document.getElementById('login-email-error');
+      const passErr    = document.getElementById('login-password-error');
+      emailErr.classList.remove('form-error--visible');
+      passErr.classList.remove('form-error--visible');
+      emailInput.classList.remove('form-input--error');
+      passInput.classList.remove('form-input--error');
+      if (!emailInput.value.trim()) {
+        emailInput.classList.add('form-input--error');
+        emailErr.classList.add('form-error--visible');
+        return;
+      }
+      try {
+        const response = await fetch(`${API_BASE}/api/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ email: emailInput.value.trim(), password: passInput.value })
+        });
+        const result = await response.json();
+        if (result.success) {
+          closeLoginModal();
+          showToast('success', '✓ Logged in successfully!');
+          setLoggedIn(true);
+        } else {
+          passInput.classList.add('form-input--error');
+          passErr.textContent = result.error || 'Incorrect email or password.';
+          passErr.classList.add('form-error--visible');
+        }
+      } catch (err) {
+        showToast('error', 'Could not reach the server. Please try again.');
+      }
+    }
+    async function handleLogout() {
+      try {
+        await fetch(`${API_BASE}/api/logout`, { method: 'POST', credentials: 'include' });
+      } catch (_) {}
+      setLoggedIn(false);
+    }
+
+    /* ── FORGOT PASSWORD ── */
+    function openForgotModal() {
+      closeLoginModal();
+      document.getElementById('forgot-modal').style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+    }
+    function closeForgotModal() {
+      const m = document.getElementById('forgot-modal');
+      if (!m) return;
+      m.style.display = 'none';
+      document.body.style.overflow = '';
+      document.getElementById('forgot-email').value = '';
+      document.getElementById('forgot-email-error').classList.remove('form-error--visible');
+      document.getElementById('forgot-email').classList.remove('form-input--error');
+    }
+    document.getElementById('forgot-modal').addEventListener('click', function(e) {
+      if (e.target === this) closeForgotModal();
+    });
+    async function handleForgotPassword() {
+      const emailInput = document.getElementById('forgot-email');
+      const emailErr   = document.getElementById('forgot-email-error');
+      emailErr.classList.remove('form-error--visible');
+      emailInput.classList.remove('form-input--error');
+      if (!emailInput.value.trim()) {
+        emailInput.classList.add('form-input--error');
+        emailErr.classList.add('form-error--visible');
+        return;
+      }
+      try {
+        await fetch(`${API_BASE}/api/forgot-password`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: emailInput.value.trim() })
+        });
+        closeForgotModal();
+        showToast('success', 'If that email is registered, a reset link has been sent.');
+      } catch (err) {
+        showToast('error', 'Could not reach the server. Please try again.');
+      }
+    }
+
+    /* CAROUSEL */
+    (function () {
+      const TOTAL = 8;
+      let current = 0;
+      let autoTimer = null;
+
+      const track   = document.getElementById('carousel-track');
+      const dotsEl  = document.getElementById('carousel-dots');
+      const counter = document.getElementById('carousel-counter');
+
+      const dots = [];
+      for (let i = 0; i < TOTAL; i++) {
+        const btn = document.createElement('button');
+        btn.className = 'carousel-dot' + (i === 0 ? ' active' : '');
+        btn.setAttribute('aria-label', 'Go to photo ' + (i + 1));
+        btn.addEventListener('click', () => { goTo(i); resetAuto(); });
+        dotsEl.appendChild(btn);
+        dots.push(btn);
+      }
+
+      function goTo(index) {
+        current = (index + TOTAL) % TOTAL;
+        track.style.transform = `translateX(-${current * 100}%)`;
+        dots.forEach((d, i) => d.classList.toggle('active', i === current));
+        counter.textContent = (current + 1) + ' / ' + TOTAL;
+      }
+
+      document.getElementById('carousel-prev').addEventListener('click', () => { goTo(current - 1); resetAuto(); });
+      document.getElementById('carousel-next').addEventListener('click', () => { goTo(current + 1); resetAuto(); });
+
+      document.getElementById('carousel').addEventListener('keydown', e => {
+        if (e.key === 'ArrowLeft')  { goTo(current - 1); resetAuto(); }
+        if (e.key === 'ArrowRight') { goTo(current + 1); resetAuto(); }
+      });
+
+      let touchStartX = null;
+      const carouselEl = document.getElementById('carousel');
+      carouselEl.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+      carouselEl.addEventListener('touchend', e => {
+        if (touchStartX === null) return;
+        const dx = e.changedTouches[0].clientX - touchStartX;
+        if (Math.abs(dx) > 40) { goTo(current + (dx < 0 ? 1 : -1)); resetAuto(); }
+        touchStartX = null;
+      }, { passive: true });
+
+      function startAuto() { autoTimer = setInterval(() => goTo(current + 1), 5000); }
+      function resetAuto()  { clearInterval(autoTimer); startAuto(); }
+      startAuto();
+    })();
+
+    /* SESSION CHECK & MAINTENANCE */
+    window.addEventListener('DOMContentLoaded', async () => {
+      try {
+        // Fetch session and maintenance state in parallel
+        const [sessionRes, maintRes] = await Promise.all([
+          fetch(`${API_BASE}/api/session`, { credentials: 'include' }),
+          fetch(`${API_BASE}/api/admin/maintenance`)
+        ]);
+        const sessionData = await sessionRes.json();
+        const maintData   = await maintRes.json();
+
+        // Show maintenance screen to non-admins when mode is on
+        if (maintData.maintenance && !sessionData.is_admin) {
+          document.body.innerHTML = `
+            <div class="maintenance-overlay">
+              <h2>🔧 Under Maintenance</h2>
+              <p>The site is currently undergoing maintenance. Please check back soon.</p>
+            </div>`;
+          return;
+        }
+
+        if (sessionData.logged_in) setLoggedIn(true, sessionData.is_admin);
+      } catch (_) {}
+    });
+  
+    /* MOBILE NAV */
+    function toggleNav() {
+      const nav     = document.getElementById('main-nav');
+      const overlay = document.getElementById('nav-overlay');
+      const isOpen  = nav.classList.contains('mobile-open');
+      if (isOpen) { closeNav(); } else {
+        nav.classList.add('mobile-open');
+        overlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      }
+    }
+    function closeNav() {
+      const nav     = document.getElementById('main-nav');
+      const overlay = document.getElementById('nav-overlay');
+      nav.classList.remove('mobile-open');
+      overlay.classList.remove('active');
+      document.body.style.overflow = '';
+    }
+    // Close nav on link click (mobile)
+    document.addEventListener('DOMContentLoaded', () => {
+      const nav = document.getElementById('main-nav');
+      if (nav) {
+        nav.querySelectorAll('a').forEach(a => {
+          a.addEventListener('click', closeNav);
+        });
+      }
+    });
+</script>
+
+</body>
+</html>

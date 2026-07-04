@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AirNest – Admin</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <header>
+    <button class="btn-hamburger" onclick="toggleNav()" aria-label="Open menu">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="3" y1="6"  x2="21" y2="6" />
+        <line x1="3" y1="12" x2="21" y2="12"/>
+        <line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
+    </button>
+    <h1>Air<span>Nest</span> <span style="font-size:0.9rem;color:var(--muted);">Admin</span></h1>
+    <div class="header-buttons">
+      <a href="index.html" class="btn-login" style="text-decoration:none;">← Back to Site</a>
+      <button type="button" class="btn-logout" onclick="handleLogout()">Log Out</button>
+    </div>
+  </header>
+
+  <div class="nav-overlay" id="nav-overlay" onclick="closeNav()"></div>
+  <nav id="main-nav">
+    <a href="index.html">
+      <span class="nav-icon">🏠</span>
+      <span class="nav-label">Home</span>
+    </a>
+    <a href="data.html">
+      <span class="nav-icon">📊</span>
+      <span class="nav-label">Data</span>
+    </a>
+    <a href="form.html">
+      <span class="nav-icon">✉️</span>
+      <span class="nav-label">Form</span>
+    </a>
+    <a href="predictions.html">
+      <span class="nav-icon">🔮</span>
+      <span class="nav-label">Predictions</span>
+    </a>
+    <a href="download.html">
+      <span class="nav-icon">⬇️</span>
+      <span class="nav-label">Download</span>
+    </a>
+  </nav>
+
+  <main>
+    <div class="admin-wrapper content-wrapper" style="max-width:960px;">
+      <h2 class="page-title">Admin Panel</h2>
+
+      <!-- ── MAINTENANCE MODE TOGGLE ── -->
+      <div class="admin-toggle-card">
+        <div>
+          <div class="admin-toggle-label">Maintenance Mode</div>
+          <div class="admin-toggle-desc">
+            When on, normal users see a maintenance page instead of the site.
+          </div>
+        </div>
+        <label class="toggle-switch" title="Toggle maintenance mode">
+          <input type="checkbox" id="maintenance-toggle" onchange="setMaintenance(this.checked)" />
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+
+      <!-- ── USERS TABLE ── -->
+      <h3 style="font-family:'Playfair Display',Georgia,serif;font-size:1.3rem;
+                 color:var(--ink);margin-bottom:1rem;">Registered Users</h3>
+
+      <div class="admin-filter-bar">
+        <input type="search" class="form-input" id="filter-search"
+          placeholder="Search name or email…" />
+        <div style="display:flex;align-items:center;gap:0.5rem;">
+          <label style="font-size:0.78rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;white-space:nowrap;">Registered from</label>
+          <input type="date" class="form-input" id="filter-from" />
+        </div>
+        <div style="display:flex;align-items:center;gap:0.5rem;">
+          <label style="font-size:0.78rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;white-space:nowrap;">to</label>
+          <input type="date" class="form-input" id="filter-to" />
+        </div>
+        <button class="filter-btn" onclick="loadUsers()">Apply</button>
+        <button class="filter-btn filter-btn-reset" onclick="resetFilters()">Reset</button>
+      </div>
+
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Verified</th>
+              <th>Registered</th>
+              <th>Last Login</th>
+            </tr>
+          </thead>
+          <tbody id="users-tbody">
+            <tr><td colspan="5" class="admin-table-empty">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p id="users-count" style="font-size:0.82rem;color:var(--muted);margin-top:0.75rem;"></p>
+
+      <!-- ── CONTACT MESSAGES ── -->
+      <div style="margin-top:3rem;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
+          <h3 style="font-family:'Playfair Display',Georgia,serif;font-size:1.3rem;color:var(--ink);">
+            Contact Messages
+          </h3>
+          <div style="display:flex;align-items:center;gap:0.5rem;">
+            <label style="font-size:0.78rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Sort</label>
+            <select id="msg-order" class="filter-select" style="min-width:140px;" onchange="loadMessages()">
+              <option value="desc">Newest first</option>
+              <option value="asc">Oldest first</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Subject</th>
+                <th>Message</th>
+                <th>Received</th>
+              </tr>
+            </thead>
+            <tbody id="messages-tbody">
+              <tr><td colspan="6" class="admin-table-empty">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p id="messages-count" style="font-size:0.82rem;color:var(--muted);margin-top:0.75rem;"></p>
+      </div>
+
+    </div>
+  </main>
+
+  <footer>© 2026 AirNest · Admin</footer>
+
+  <div id="toast-success" class="toast toast-success">
+    <span class="toast-icon">✓</span>
+    <span id="toast-success-msg">Done!</span>
+  </div>
+  <div id="toast-error" class="toast toast-error">
+    <span class="toast-icon">✕</span>
+    <span id="toast-error-msg">Something went wrong.</span>
+  </div>
+
+  <script>
+    const API_BASE = window.location.port
+      ? `${window.location.protocol}//${window.location.hostname}:${window.location.port}`
+      : `${window.location.protocol}//${window.location.hostname}`;
+
+    function showToast(type, message) {
+      if (message) document.getElementById('toast-' + type + '-msg').textContent = message;
+      const toast = document.getElementById('toast-' + type);
+      toast.classList.add('toast-visible');
+      setTimeout(() => toast.classList.remove('toast-visible'), 4000);
+    }
+
+    async function handleLogout() {
+      await fetch(`${API_BASE}/api/logout`, { method: 'POST', credentials: 'include' });
+      window.location.href = 'index.html';
+    }
+
+    // ── MAINTENANCE ──
+    async function loadMaintenance() {
+      try {
+        const res  = await fetch(`${API_BASE}/api/admin/maintenance`, { credentials: 'include' });
+        const data = await res.json();
+        if (data.success) {
+          document.getElementById('maintenance-toggle').checked = data.maintenance;
+        }
+      } catch (_) {}
+    }
+
+    async function setMaintenance(on) {
+      try {
+        const res = await fetch(`${API_BASE}/api/admin/maintenance`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ maintenance: on })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast('success', on ? 'Maintenance mode ON — site hidden from users.' : 'Maintenance mode OFF — site is live.');
+        } else {
+          showToast('error', 'Failed to update maintenance mode.');
+          // Revert toggle
+          document.getElementById('maintenance-toggle').checked = !on;
+        }
+      } catch (_) {
+        showToast('error', 'Could not reach the server.');
+        document.getElementById('maintenance-toggle').checked = !on;
+      }
+    }
+
+    // ── USERS ──
+    async function loadUsers() {
+      const search = document.getElementById('filter-search').value.trim();
+      const from   = document.getElementById('filter-from').value;
+      const to     = document.getElementById('filter-to').value;
+
+      const params = new URLSearchParams();
+      if (search) params.append('search', search);
+      if (from)   params.append('from', from);
+      if (to)     params.append('to', to);
+
+      const tbody = document.getElementById('users-tbody');
+      tbody.innerHTML = '<tr><td colspan="5" class="admin-table-empty">Loading…</td></tr>';
+
+      try {
+        const res  = await fetch(`${API_BASE}/api/admin/users?${params}`, { credentials: 'include' });
+        const data = await res.json();
+
+        if (!data.success) {
+          tbody.innerHTML = '<tr><td colspan="5" class="admin-table-empty">Failed to load users.</td></tr>';
+          return;
+        }
+
+        if (data.users.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="5" class="admin-table-empty">No users found.</td></tr>';
+          document.getElementById('users-count').textContent = '';
+          return;
+        }
+
+        tbody.innerHTML = data.users.map((u, i) => `
+          <tr>
+            <td style="color:var(--muted)">${i + 1}</td>
+            <td>${u.first_name} ${u.last_name}</td>
+            <td>${u.email}</td>
+            <td>
+              <span class="user-verified ${u.verified ? 'user-verified--yes' : 'user-verified--no'}">
+                ${u.verified ? 'Verified' : 'Unverified'}
+              </span>
+            </td>
+            <td style="color:var(--muted)">${u.created_at}</td>
+            <td style="color:var(--muted)">${u.last_login}</td>
+          </tr>
+        `).join('');
+
+        document.getElementById('users-count').textContent =
+          `${data.users.length} user${data.users.length !== 1 ? 's' : ''} found`;
+      } catch (_) {
+        tbody.innerHTML = '<tr><td colspan="5" class="admin-table-empty">Could not reach the server.</td></tr>';
+      }
+    }
+
+    function resetFilters() {
+      document.getElementById('filter-search').value = '';
+      document.getElementById('filter-from').value   = '';
+      document.getElementById('filter-to').value     = '';
+      loadUsers();
+    }
+
+    // ── MESSAGES ──
+    async function loadMessages() {
+      const order  = document.getElementById('msg-order').value;
+      const tbody  = document.getElementById('messages-tbody');
+      tbody.innerHTML = '<tr><td colspan="6" class="admin-table-empty">Loading…</td></tr>';
+
+      try {
+        const res  = await fetch(`${API_BASE}/api/admin/messages?order=${order}`, { credentials: 'include' });
+        const data = await res.json();
+
+        if (!data.success) {
+          tbody.innerHTML = '<tr><td colspan="6" class="admin-table-empty">Failed to load messages.</td></tr>';
+          return;
+        }
+        if (data.messages.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="6" class="admin-table-empty">No messages yet.</td></tr>';
+          document.getElementById('messages-count').textContent = '';
+          return;
+        }
+
+        tbody.innerHTML = data.messages.map((m, i) => `
+          <tr>
+            <td style="color:var(--muted)">${i + 1}</td>
+            <td>${m.name}</td>
+            <td>${m.email}</td>
+            <td>${m.subject}</td>
+            <td style="max-width:260px;white-space:pre-wrap;word-break:break-word;font-size:0.82rem;color:var(--muted);">${m.message}</td>
+            <td style="color:var(--muted);white-space:nowrap;">${m.created_at}</td>
+          </tr>
+        `).join('');
+
+        document.getElementById('messages-count').textContent =
+          `${data.messages.length} message${data.messages.length !== 1 ? 's' : ''}`;
+      } catch (_) {
+        tbody.innerHTML = '<tr><td colspan="6" class="admin-table-empty">Could not reach the server.</td></tr>';
+      }
+    }
+
+    // ── INIT — redirect if not admin ──
+    window.addEventListener('DOMContentLoaded', async () => {
+      try {
+        const res  = await fetch(`${API_BASE}/api/session`, { credentials: 'include' });
+        const data = await res.json();
+        if (!data.is_admin) {
+          window.location.href = 'index.html';
+          return;
+        }
+      } catch (_) {
+        window.location.href = 'index.html';
+        return;
+      }
+      await loadMaintenance();
+      await loadUsers();
+      await loadMessages();
+    });
+  
+    /* ── MOBILE NAV ── */
+    function toggleNav() {
+      const nav     = document.getElementById('main-nav');
+      const overlay = document.getElementById('nav-overlay');
+      const isOpen  = nav.classList.contains('mobile-open');
+      if (isOpen) { closeNav(); } else {
+        nav.classList.add('mobile-open');
+        overlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      }
+    }
+    function closeNav() {
+      const nav     = document.getElementById('main-nav');
+      const overlay = document.getElementById('nav-overlay');
+      nav.classList.remove('mobile-open');
+      overlay.classList.remove('active');
+      document.body.style.overflow = '';
+    }
+    // Close nav on link click (mobile)
+    document.addEventListener('DOMContentLoaded', () => {
+      const nav = document.getElementById('main-nav');
+      if (nav) {
+        nav.querySelectorAll('a').forEach(a => {
+          a.addEventListener('click', closeNav);
+        });
+      }
+    });
+</script>
+
+</body>
+</html>
